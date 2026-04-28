@@ -3,27 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mem-Lingo 英语学习</title>
+  <title>Mem-Lexis 英语学习</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="word-roots.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --primary: #4F86F7;
+      --primary: #1a73e8;
+      --secondary: #7B5CFA;
       --purple: #7B5CFA;
-      --teal: #4ECDC4;
-      --yellow: #FFC107;
-      --orange: #FF7043;
-      --bg: #F8F9FA;
+      --teal: #00b8a9;
+      --yellow: #f9ca24;
+      --orange: #f0932b;
+      --green: #26de81;
+      --red: #eb3b5a;
+      --bg: #f0f4f8;
       --card: #FFFFFF;
-      --text: #2D3436;
-      --text-secondary: #636E72;
-      --border: #E9ECEF;
-      --danger: #F44336;
+      --text: #1a1a2e;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --border: #e2e8f0;
+      --danger: #eb3b5a;
     }
 
     body {
@@ -474,6 +479,19 @@
     .word-btn.secondary { background: var(--border); color: var(--text); }
     .word-btn.ai { background: var(--purple); }
 
+    /* Root Card (Word Roots Canvas) */
+    .root-card {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .root-card:active {
+      transform: scale(0.98);
+    }
+    .root-card.learned {
+      background: linear-gradient(135deg, rgba(78,205,196,0.1), rgba(76,175,80,0.1));
+      border: 1px solid rgba(78,205,196,0.3);
+    }
+
     /* Task Card */
     .task-card {
       background: var(--card);
@@ -537,40 +555,7 @@
       margin-bottom: 24px;
     }
 
-    .speaking-btn {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--teal);
-      border: none;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      transition: all 0.2s;
-    }
-
-    .speaking-btn:active { transform: scale(0.95); }
-    .speaking-btn.recording { background: #FF6B6B; animation: pulse 1s infinite; }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
-      50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
-    }
-
-    .speaking-result {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-top: 16px;
-      padding: 12px;
-      background: var(--bg);
-      border-radius: 8px;
-    }
-
-    /* Article Card */
-    .article-card {
+        .article-card {
       background: var(--card);
       border-radius: 12px;
       padding: 16px;
@@ -1267,6 +1252,271 @@
       background: #FFEBEE !important;
       border-color: #F44336 !important;
     }
+
+    /* Floating Sentence */
+    .floating-sentence-container {
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px 16px;
+    }
+    .floating-sentence {
+      background: linear-gradient(135deg, #1a73e8, #7B5CFA);
+      color: white;
+      padding: 24px 32px;
+      border-radius: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 8px 32px rgba(26, 115, 232, 0.4);
+      animation: float 3s ease-in-out infinite;
+      position: relative;
+      max-width: 500px;
+      width: 100%;
+    }
+    .floating-sentence:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 40px rgba(26, 115, 232, 0.5);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .floating-sentence-word {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      letter-spacing: 1px;
+    }
+    .floating-sentence-phonetic {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .floating-sentence-english {
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-style: italic;
+      opacity: 0.95;
+    }
+    .floating-sentence-english.loading {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .floating-sentence-translation {
+      font-size: 14px;
+      opacity: 0.85;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    .highlighted-word {
+      background: rgba(255,255,255,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: underline;
+      text-decoration-color: #fff;
+    }
+
+    /* Homepage Grid */
+    .homepage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+    .homepage-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .homepage-card:active {
+      transform: scale(0.98);
+    }
+    .homepage-card.primary {
+      background: linear-gradient(135deg, rgba(79,134,247,0.1), rgba(123,92,250,0.1));
+      border-color: rgba(79,134,247,0.2);
+    }
+    .homepage-card.primary:hover {
+      border-color: var(--primary);
+    }
+    .homepage-card.warning {
+      background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,112,67,0.1));
+      border-color: rgba(255,193,7,0.2);
+    }
+    .homepage-card.warning:hover {
+      border-color: var(--yellow);
+    }
+    .homepage-card.success {
+      background: linear-gradient(135deg, rgba(78,205,196,0.1), rgba(76,175,80,0.1));
+      border-color: rgba(78,205,196,0.2);
+    }
+    .homepage-card.success:hover {
+      border-color: var(--green);
+    }
+    .homepage-card.orange {
+      background: linear-gradient(135deg, rgba(255,112,67,0.1), rgba(255,193,7,0.1));
+      border-color: rgba(255,112,67,0.2);
+    }
+    .homepage-card.orange:hover {
+      border-color: var(--orange);
+    }
+    .homepage-card.purple {
+      background: linear-gradient(135deg, rgba(123,92,250,0.1), rgba(79,134,247,0.1));
+      border-color: rgba(123,92,250,0.2);
+    }
+    .homepage-card.purple:hover {
+      border-color: var(--purple);
+    }
+    .homepage-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .homepage-card.disabled:hover {
+      border-color: transparent;
+    }
+    .homepage-card-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .homepage-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .homepage-card-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .homepage-card-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .homepage-card.warning .homepage-card-badge {
+      background: var(--yellow);
+      color: var(--text-primary);
+    }
+    .homepage-card.success .homepage-card-badge {
+      background: var(--green);
+    }
+    .homepage-card.orange .homepage-card-badge {
+      background: var(--orange);
+    }
+    .homepage-card.purple .homepage-card-badge {
+      background: var(--purple);
+    }
+    .homepage-card.teal {
+      background: linear-gradient(135deg, rgba(0,184,169,0.1), rgba(79,134,247,0.1));
+      border-color: rgba(0,184,169,0.2);
+    }
+    .homepage-card.teal:hover {
+      border-color: var(--teal);
+    }
+    .homepage-card.teal .homepage-card-badge {
+      background: var(--teal);
+    }
+
+    /* Hot Word Chip */
+    .hot-word-chip {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .hot-word-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Pet Stage Badge */
+    .pet-stage-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--purple), var(--primary));
+      color: white;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 10px;
+      margin-top: 6px;
+    }
+
+    /* Stat Bar */
+    .stat-bar-bg {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .stat-bar-fill.hunger { background: linear-gradient(90deg, #FF6B6B, #FF8E53); }
+    .stat-bar-fill.happiness { background: linear-gradient(90deg, #FFD93D, #FF6B6B); }
+    .stat-bar-fill.exp { background: linear-gradient(90deg, #4F86F7, #7B5CFA); }
+
+    /* Pet Abilities & Interactions */
+    .pet-abilities, .pet-interactions {
+      width: 100%;
+      max-width: 350px;
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--card);
+      border-radius: 16px;
+    }
+    .interact-grid {
+      display: flex;
+      justify-content: space-around;
+      gap: 12px;
+    }
+    .ability-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 12px;
+    }
+    .ability-icon { font-size: 24px; }
+    .ability-name { font-size: 11px; color: var(--text-secondary); }
+    .ability-value { font-size: 18px; font-weight: 700; color: var(--primary); }
+
+    /* Ebbinghaus Tags */
+    .ebbinghaus-tag {
+      display: inline-block;
+      background: rgba(79,134,247,0.1);
+      color: var(--primary);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1276,7 +1526,7 @@
       <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
       </svg>
-      <span>Mem-Lingo</span>
+      <span>Mem-Lexis</span>
     </div>
     <div class="header-right">
       <div class="exam-dropdown">
@@ -1407,35 +1657,7 @@
           </div>
         </div>
 
-        <!-- Speaking with Pet -->
-        <div class="interact-section">
-          <div class="feed-title">🎤 和宠物对话</div>
-          <div class="word-card" style="width: 100%; max-width: 350px; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 16px;">
-              <div style="font-size: 40px;" id="pet-speaking-avatar">${state.pet.emoji}</div>
-              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;" id="pet-speaking-status">点击开始，和宠物练习口语！</div>
-            </div>
-            <div style="margin-bottom: 16px;">
-              <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">选择一个话题：</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('greeting')">👋 打招呼</button>
-                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('weather')">🌤️ 天气</button>
-                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('hobby')">🎨 爱好</button>
-                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('food')">🍕 食物</button>
               </div>
-            </div>
-            <div class="speaking-result" id="speaking-result-pet" style="min-height: 60px; margin-bottom: 12px;">
-              宠物在等你说话...
-            </div>
-            <button class="speaking-btn" id="pet-speaking-btn" onclick="startPetSpeechRecognition()" style="width: 60px; height: 60px; margin: 0 auto;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Online Page -->
@@ -1752,7 +1974,7 @@
     // ============== State ==============
     let state = {
       user: { nickname: '学习者', petName: '小黄', selectedExam: 'cet4', hasCompletedOnboarding: false, createdAt: new Date().toISOString() },
-      abilities: { vocab: 50, listening: 50, speaking: 50, reading: 50, writing: 50 },
+      abilities: { vocab: 0 },
       learning: { learnedWords: [], completedTasks: [], totalStudyMinutes: 0, points: 50 },
       pet: { type: 'cat', emoji: '🐱', color: '#FFD93D', name: '小黄', level: 1, exp: 0, hunger: 80, happiness: 90, isDead: false },
       checkin: { dates: [], streak: 0, longestStreak: 0 },
@@ -1760,7 +1982,10 @@
       wordSettings: { version: 'essential', order: 'random' }, // essential/core/full, random/sequential
       wordFavorites: [], // 收藏的单词
       wordQuizHistory: {}, // 单词测验记录 {word: {correct: 0, total: 0}}
-      wordMastery: {} // 单词掌握度 {word: level} level: 0-5
+      wordMastery: {}, // 单词掌握度 {word: level} level: 0-5
+      reviewRecords: {}, // 艾宾浩斯复习记录 {word: {nextReview: timestamp, interval: days, easeFactor: float, repetitions: int}}
+      dailyHotWords: [], // 每日热词 {word, phonetic, meaning, example, meme, date}
+      lastHotWordsDate: '' // 上次生成热词的日期
     };
 
     let currentExam = 'cet4';
@@ -2221,17 +2446,7 @@
       currentGroup: null
     };
 
-    const DEMO_GROUPS = [
-      { id: 'g1', name: '四级冲刺群', desc: '每日打卡监督', members: 128, todayCheckins: 45, leader: '群主小王' },
-      { id: 'g2', name: '考研英语必胜', desc: '考研词汇每日背', members: 256, todayCheckins: 89, leader: '学姐小红' },
-      { id: 'g3', name: '托福词汇特训', desc: '托福词汇专项练习', members: 64, todayCheckins: 23, leader: '托福达人' },
-      { id: 'g4', name: '雅思词汇实战', desc: '雅思词汇对练', members: 89, todayCheckins: 34, leader: '雅思7分' }
-    ];
-
     async function showGroups() {
-      if (isDemoMode) {
-        groupState.groups = DEMO_GROUPS;
-      }
 
       let html = `
         <div class="modal-header">
@@ -2239,30 +2454,203 @@
           <button class="modal-close" onclick="closeModal()">×</button>
         </div>
         <div style="padding: 16px 0;">
-          <button class="word-btn" style="width: 100%; margin-bottom: 16px;" onclick="createGroup()">创建小组</button>
+          <button class="word-btn" style="width: 100%; margin-bottom: 16px;" onclick="createGroup()">➕ 创建小组</button>
 
           <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-            加入小组可获得额外积分奖励！
+            创建或加入小组，与伙伴一起打卡学习！
           </div>
       `;
 
-      for (const group of groupState.groups) {
-        const isJoined = onlineState.currentGroup === group.id;
-        html += `
-          <div class="word-card" style="margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
-              <div>
-                <div style="font-weight: 600;">${group.name}</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">${group.desc}</div>
-                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-                  👥 ${group.members}人 | 📅 今日${group.todayCheckins}人打卡
+      // If user has joined a group, show it first
+      if (onlineState.currentGroup) {
+        const myGroup = groupState.groups.find(g => g.id === onlineState.currentGroup);
+        if (myGroup) {
+          html += `
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 8px;">我的小组</div>
+              <div class="word-card" style="background: linear-gradient(135deg, rgba(79,134,247,0.1), rgba(123,92,250,0.1)); border: 1px solid rgba(79,134,247,0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                  <div>
+                    <div style="font-weight: 600; font-size: 15px;">${myGroup.name}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">${myGroup.desc}</div>
+                  </div>
+                  <span style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">已加入</span>
                 </div>
+                <div style="display: flex; gap: 8px; font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">
+                  <span>👥 ${myGroup.members?.length || 1}人</span>
+                  <span>📅 今日${myGroup.todayCheckins || 0}人打卡</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="word-btn secondary" style="flex: 1; font-size: 12px;" onclick="showGroupMembers('${myGroup.id}')">👥 成员</button>
+                  <button class="word-btn secondary" style="flex: 1; font-size: 12px;" onclick="showGroupInvite('${myGroup.id}')">📤 邀请</button>
+                  <button class="word-btn secondary" style="flex: 1; font-size: 12px;" onclick="showGroupCheckinRecord('${myGroup.id}')">📋 记录</button>
+                </div>
+                <button class="word-btn" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="groupCheckin()">✅ 小组打卡 (+30积分)</button>
               </div>
-              ${isJoined ?
-                '<span style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">已加入</span>' :
-                '<button class="word-btn secondary" style="padding: 4px 12px; font-size: 11px;" onclick="joinGroup(\'' + group.id + '\')">加入</button>'
-              }
             </div>
+          `;
+        }
+      }
+
+      // Show available groups
+      const availableGroups = groupState.groups.filter(g => g.id !== onlineState.currentGroup);
+
+      if (availableGroups.length > 0) {
+        html += `<div style="font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px;">推荐小组</div>`;
+
+        for (const group of availableGroups) {
+          html += `
+            <div class="word-card" style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                  <div style="font-weight: 600;">${group.name}</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">${group.desc}</div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    👥 ${group.members?.length || 0}人 | 📅 今日${group.todayCheckins || 0}人打卡
+                  </div>
+                </div>
+                <button class="word-btn secondary" style="padding: 4px 12px; font-size: 11px;" onclick="joinGroup('${group.id}')">加入</button>
+              </div>
+            </div>
+          `;
+        }
+      } else if (!onlineState.currentGroup) {
+        html += `
+          <div style="text-align: center; padding: 32px 16px; color: var(--text-secondary);">
+            <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+            <div style="font-size: 14px;">暂无小组</div>
+            <div style="font-size: 12px; margin-top: 4px;">点击上方按钮创建第一个小组吧！</div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      showModal(html);
+    }
+
+    async function showGroupMembers(groupId) {
+      const group = groupState.groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      const members = group.members || [];
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">👥 ${group.name} - 成员列表</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div style="padding: 16px 0;">
+      `;
+
+      if (members.length === 0) {
+        html += `
+          <div style="text-align: center; padding: 24px; color: var(--text-secondary);">
+            暂无成员，快邀请朋友加入吧！
+          </div>
+        `;
+      } else {
+        for (const member of members) {
+          const isOwner = member.id === group.creatorId;
+          html += `
+            <div class="word-card" style="margin-bottom: 8px; padding: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 24px;">${member.avatar || '👤'}</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">${member.name}</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">
+                    加入于 ${member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : '未知'}
+                  </div>
+                </div>
+                ${isOwner ? '<span style="background: var(--yellow); color: var(--text); padding: 2px 8px; border-radius: 4px; font-size: 10px;">群主</span>' : ''}
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      html += '</div>';
+      showModal(html);
+    }
+
+    async function showGroupInvite(groupId) {
+      const group = groupState.groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      // In a real app, this would generate a real invite code/link
+      const inviteCode = 'GRP-' + groupId.toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">📤 邀请加入小组</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div style="padding: 16px 0; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🔗</div>
+          <div style="font-weight: 600; margin-bottom: 8px;">${group.name}</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            分享邀请码给朋友，一起打卡学习！
+          </div>
+          <div class="word-card" style="background: var(--bg); padding: 16px; margin-bottom: 16px;">
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">邀请码</div>
+            <div style="font-size: 20px; font-weight: 700; letter-spacing: 2px; color: var(--primary);">${inviteCode}</div>
+          </div>
+          <button class="word-btn" style="width: 100%;" onclick="copyInviteCode('${inviteCode}')">📋 复制邀请码</button>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 12px;">
+            朋友在小组页面输入邀请码即可加入
+          </div>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function copyInviteCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('邀请码已复制！');
+      }).catch(() => {
+        showToast('复制失败，请手动复制');
+      });
+    }
+
+    async function showGroupCheckinRecord(groupId) {
+      const group = groupState.groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      const checkins = group.checkinRecord || {};
+      const today = new Date();
+      const dates = [];
+
+      // Get last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        dates.push(d.toDateString());
+      }
+
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">📋 打卡记录</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div style="padding: 16px 0;">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">最近7天打卡情况</div>
+      `;
+
+      for (const dateStr of dates) {
+        const dateObj = new Date(dateStr);
+        const dateLabel = dateObj.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+        const dayName = dayNames[dateObj.getDay()];
+        const hasCheckin = checkins[dateStr];
+
+        html += `
+          <div class="word-card" style="margin-bottom: 8px; padding: 12px; display: flex; align-items: center; gap: 12px;">
+            <div style="text-align: center; width: 40px;">
+              <div style="font-size: 11px; color: var(--text-secondary);">${dayName}</div>
+              <div style="font-size: 16px; font-weight: 600;">${dateObj.getDate()}</div>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: var(--text-secondary);">${dateLabel}</div>
+            </div>
+            <div style="font-size: 20px;">${hasCheckin ? '✅' : '⬜'}</div>
           </div>
         `;
       }
@@ -2273,8 +2661,20 @@
 
     async function joinGroup(groupId) {
       if (isDemoMode) {
-        showToast('演示模式：已加入小组');
+        // Find the group and add user as member locally
+        const group = groupState.groups.find(g => g.id === groupId);
+        if (group) {
+          if (!group.members) group.members = [];
+          group.members.push({
+            id: 'user_' + Date.now(),
+            name: onlineState.userName || '我',
+            avatar: onlineState.avatar || '👤',
+            joinedAt: Date.now()
+          });
+          group.todayCheckins = (group.todayCheckins || 0) + 1;
+        }
         onlineState.currentGroup = groupId;
+        showToast('已加入小组');
         closeModal();
         return;
       }
@@ -2314,7 +2714,7 @@
         state.pet.happiness = Math.min(100, state.pet.happiness + 5);
         saveState();
         updateHeader();
-        renderPet();
+        renderPetContent();
         return;
       }
 
@@ -2334,7 +2734,7 @@
         saveState();
         saveUserData();
         updateHeader();
-        renderPet();
+        renderPetContent();
       } catch (e) {
         showToast('打卡失败：' + e.message);
       }
@@ -2373,7 +2773,23 @@
       }
 
       if (isDemoMode) {
-        showToast('演示模式：小组已创建');
+        const newGroup = {
+          id: 'grp_' + Date.now(),
+          name: name,
+          desc: desc || '每日打卡监督学习',
+          creatorId: 'demo_user',
+          members: [{
+            id: 'demo_user',
+            name: onlineState.userName || '我',
+            avatar: onlineState.avatar || '👤',
+            joinedAt: Date.now()
+          }],
+          todayCheckins: 0,
+          checkinRecord: {}
+        };
+        groupState.groups.push(newGroup);
+        onlineState.currentGroup = newGroup.id;
+        showToast('小组已创建！');
         closeModal();
         return;
       }
@@ -2410,7 +2826,8 @@
 
     // ============== Online Tab ==============
     function renderOnlineContent() {
-      return `
+      const container = document.getElementById('online-content');
+      container.innerHTML = `
         <div class="section-header">
           <div class="section-icon" style="background: rgba(79,134,247,0.1);">⚔️</div>
           <div class="section-info">
@@ -2805,11 +3222,14 @@
         document.getElementById('onboarding').style.display = 'none';
         renderExamDropdown();
         renderAbilityContent();
-        renderPet();
+        renderPetContent();
         renderCalendar();
         renderDailyTasks();
         updateProfileStats();
         updateHeader();
+
+        // Initialize daily hot words if needed
+        getDailyHotWords();
       } else {
         renderOnboarding();
       }
@@ -2871,7 +3291,7 @@
         // Welcome
         container.innerHTML = `
           <div class="onboarding-logo">📚</div>
-          <div class="onboarding-title">Mem-Lingo</div>
+          <div class="onboarding-title">Mem-Lexis</div>
           <div class="onboarding-subtitle">智能英语学习 + 宠物养成<br>完成测评解锁你的专属学习伙伴</div>
           <button class="onboarding-btn" onclick="nextOnboardingStep()">开始测评</button>
           <button class="onboarding-btn" style="background: transparent; color: var(--text-secondary); margin-top: 12px; font-size: 14px;" onclick="skipOnboarding()">跳过，直接使用</button>
@@ -2913,7 +3333,7 @@
       document.getElementById('onboarding').style.display = 'none';
       renderExamDropdown();
       renderAbilityContent();
-      renderPet();
+      renderPetContent();
       renderCalendar();
       renderDailyTasks();
       updateProfileStats();
@@ -3146,7 +3566,7 @@
       document.getElementById('onboarding').style.display = 'none';
       renderExamDropdown();
       renderAbilityContent();
-      renderPet();
+      renderPetContent();
       renderCalendar();
       renderDailyTasks();
       updateProfileStats();
@@ -3170,8 +3590,7 @@
       document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
 
       if (tab === 'pet') {
-        renderPet();
-        renderCalendar();
+        renderPetContent();
         renderDailyTasks();
       } else if (tab === 'profile') {
         updateProfileStats();
@@ -3246,9 +3665,101 @@
     }
 
     // ============== Content Rendering ==============
+
+    // Highlight the target word in a sentence
+    function getHighlightedSentence(word, sentence) {
+      if (!sentence || !word) return sentence || '';
+      const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+      return sentence.replace(regex, '<span class="highlighted-word">$1</span>');
+    }
+
+    // Cache for AI generated sentences
+    let aiSentenceCache = {};
+
+    // Generate AI example sentence for a word
+    async function generateAISentence(word) {
+      // Check cache first
+      if (aiSentenceCache[word]) {
+        return aiSentenceCache[word];
+      }
+
+      const messages = [
+        { role: 'system', content: '你是一个英语学习助手。请为给定的单词生成一个简短精妙的例句，并给出中文翻译。格式：\n例句: English sentence with the word highlighted\n翻译: Chinese translation' },
+        { role: 'user', content: `为单词 "${word}" 生成一个例句` }
+      ];
+
+      try {
+        const response = await callAI(messages);
+        // Parse the response
+        let sentence = '';
+        let translation = '';
+
+        const sentenceMatch = response.match(/例句[:：]\s*(.+?)(?:\n|$)/i);
+        const translationMatch = response.match(/翻译[:：]\s*(.+?)(?:\n|$)/i);
+
+        if (sentenceMatch) sentence = sentenceMatch[1].trim();
+        if (translationMatch) translation = translationMatch[1].trim();
+
+        // If parsing failed, try to extract from raw response
+        if (!sentence && response) {
+          // Clean up the response
+          sentence = response.replace(/翻译[:：].*/i, '').replace(/例句[:：]/i, '').trim();
+          translation = response.split(/翻译[:：]/i)[1]?.trim() || '';
+        }
+
+        const result = { sentence, translation };
+        aiSentenceCache[word] = result;
+        return result;
+      } catch (error) {
+        console.error('AI Sentence Error:', error);
+        return { sentence: '', translation: '' };
+      }
+    }
+
     function renderAbilityContent() {
       const container = document.getElementById('ability-content');
       container.innerHTML = renderVocabContent();
+
+      // Load AI sentence for floating display
+      const words = WORDS[currentExam] || WORDS.cet4;
+      let filteredWords = words;
+      if (state.wordSettings.version === 'core') {
+        filteredWords = words.filter(w => w.isCore);
+      } else if (state.wordSettings.version === 'essential') {
+        filteredWords = words.filter(w => w.isCore).slice(0, Math.floor(words.filter(w => w.isCore).length * 0.5));
+      }
+
+      const randomWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+      if (randomWord) {
+        loadAISentence(randomWord.word);
+      }
+    }
+
+    async function loadAISentence(word) {
+      const englishEl = document.getElementById('floating-sentence-english');
+      const translationEl = document.getElementById('floating-sentence-translation');
+
+      if (!englishEl || !translationEl) return;
+
+      englishEl.classList.add('loading');
+      englishEl.textContent = '✨ AI 生成精美例句中...';
+      translationEl.textContent = '';
+
+      try {
+        const result = await generateAISentence(word);
+        englishEl.classList.remove('loading');
+        if (result.sentence) {
+          englishEl.innerHTML = getHighlightedSentence(word, result.sentence);
+          translationEl.textContent = result.translation || '';
+        } else {
+          englishEl.textContent = '暂无例句，点击查看单词详情';
+          translationEl.textContent = '';
+        }
+      } catch (error) {
+        englishEl.classList.remove('loading');
+        englishEl.textContent = '例句加载失败';
+        console.error('Load AI Sentence Error:', error);
+      }
     }
 
     function renderVocabContent() {
@@ -3269,22 +3780,131 @@
         filteredWords = [...filteredWords].sort(() => Math.random() - 0.5);
       }
 
-      const coreWords = filteredWords.filter(w => w.isCore);
+      // Get a random floating word for homepage
+      const floatingWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+
+      // Check if there are words due for review (Ebbinghaus)
+      const now = Date.now();
+      const wordsForReview = Object.entries(state.reviewRecords).filter(([word, record]) => record.nextReview <= now);
+      const hasReviewableWords = wordsForReview.length > 0 || Object.keys(state.reviewRecords).length > 0;
+      const learnedCount = Object.keys(state.wordMastery).length;
+
+      // Calculate stats
+      const totalLearned = Object.keys(state.wordMastery).length;
+      const mastery5Count = Object.values(state.wordMastery).filter(v => v >= 5).length;
+      const reviewDueCount = wordsForReview.length;
 
       return `
+        <!-- Floating Sentence Display -->
+        <div class="floating-sentence-container" id="floating-sentence-container">
+          <div class="floating-sentence" onclick="showWordLookup('${floatingWord?.word || ''}')" id="floating-sentence">
+            <div class="floating-sentence-word">${floatingWord?.word || 'Welcome'}</div>
+            <div class="floating-sentence-phonetic">${floatingWord?.phonetic || ''}</div>
+            <div class="floating-sentence-english" id="floating-sentence-english">✨ AI 生成精美例句中...</div>
+            <div class="floating-sentence-translation" id="floating-sentence-translation"></div>
+          </div>
+        </div>
+
+        <!-- Four Function Blocks -->
+        <div class="homepage-grid">
+          <div class="homepage-card primary" onclick="showVocabLearning()">
+            <div class="homepage-card-icon">📖</div>
+            <div class="homepage-card-title">词汇学习</div>
+            <div class="homepage-card-desc">开始学习新单词</div>
+            <div class="homepage-card-badge">${filteredWords.length} 词</div>
+          </div>
+
+          <div class="homepage-card ${learnedCount > 0 ? 'warning' : 'disabled'}" onclick="${learnedCount > 0 ? 'showReview()' : ''}">
+            <div class="homepage-card-icon">🧠</div>
+            <div class="homepage-card-title">复习</div>
+            <div class="homepage-card-desc">${learnedCount > 0 ? `艾宾浩斯记忆法` : '先学习再复习'}</div>
+            ${learnedCount > 0 ? `<div class="homepage-card-badge">${reviewDueCount > 0 ? reviewDueCount + '词待复习' : '暂无待复习'}</div>` : ''}
+          </div>
+
+          <div class="homepage-card success" onclick="showQuizMode()">
+            <div class="homepage-card-icon">📝</div>
+            <div class="homepage-card-title">词汇测验</div>
+            <div class="homepage-card-desc">检验学习效果</div>
+            <div class="homepage-card-badge">${Object.keys(state.wordQuizHistory).length} 词已测</div>
+          </div>
+
+          <div class="homepage-card ${state.wordFavorites.length > 0 ? 'orange' : 'disabled'}" onclick="${state.wordFavorites.length > 0 ? 'showFavorites()' : ''}">
+            <div class="homepage-card-icon">⭐</div>
+            <div class="homepage-card-title">收藏</div>
+            <div class="homepage-card-desc">${state.wordFavorites.length > 0 ? '查看收藏单词' : '暂无收藏'}</div>
+            ${state.wordFavorites.length > 0 ? `<div class="homepage-card-badge">${state.wordFavorites.length} 词</div>` : ''}
+          </div>
+
+          <div class="homepage-card purple" onclick="showWordRootsCanvas()">
+            <div class="homepage-card-icon">🔗</div>
+            <div class="homepage-card-title">词根画布</div>
+            <div class="homepage-card-desc">探索词根词缀关系</div>
+            <div class="homepage-card-badge">${Object.keys(WORD_ROOTS || {}).length} 词根</div>
+          </div>
+
+          <div class="homepage-card teal" onclick="showDailyHotWords()">
+            <div class="homepage-card-icon">🔥</div>
+            <div class="homepage-card-title">每日热词</div>
+            <div class="homepage-card-desc">每日推荐的热门词汇</div>
+            <div class="homepage-card-badge" id="hot-words-badge">${state.dailyHotWords.length > 0 ? state.dailyHotWords.length + ' 词' : '今日新'}</div>
+          </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="word-card" style="margin-top: 20px; padding: 16px;">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">学习概览</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center;">
+            <div>
+              <div style="font-size: 22px; font-weight: 700; color: var(--primary);">${totalLearned}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">已学习</div>
+            </div>
+            <div>
+              <div style="font-size: 22px; font-weight: 700; color: var(--green);">${mastery5Count}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">已掌握</div>
+            </div>
+            <div>
+              <div style="font-size: 22px; font-weight: 700; color: var(--yellow);">${state.wordFavorites.length}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">收藏</div>
+            </div>
+            <div>
+              <div style="font-size: 22px; font-weight: 700; color: var(--orange);">${reviewDueCount}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">待复习</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ebbinghaus Info -->
+        <div class="word-card" style="margin-top: 12px; padding: 16px; background: linear-gradient(135deg, rgba(79,134,247,0.05), rgba(123,92,250,0.05));">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 16px;">🧠</span>
+            <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">艾宾浩斯遗忘曲线</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+            根据艾宾浩斯研究，记忆会在20分钟、1小时、9小时、1天、2天、6天后逐渐遗忘。
+            及时复习可以显著提升长期记忆效果。本应用会根据你的记忆曲线智能安排复习时间。
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+            <span class="ebbinghaus-tag">20分钟</span>
+            <span class="ebbinghaus-tag">1小时</span>
+            <span class="ebbinghaus-tag">9小时</span>
+            <span class="ebbinghaus-tag">1天</span>
+            <span class="ebbinghaus-tag">2天</span>
+            <span class="ebbinghaus-tag">6天</span>
+          </div>
+        </div>
+
         <!-- Word Search -->
-        <div class="word-card" style="margin-bottom: 16px; padding: 12px;">
+        <div class="word-card" style="margin-top: 12px; padding: 12px;">
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="word-search-input" placeholder="输入单词查询词典..."
+            <input type="text" id="word-search-input" placeholder="输入单词查询..."
                    style="flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
                    onkeypress="if(event.key==='Enter')searchWord()">
             <button class="word-btn" onclick="searchWord()">🔍 查询</button>
           </div>
         </div>
 
-        <!-- Word Settings -->
-        <div class="word-card" style="margin-bottom: 16px; padding: 12px;">
-          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">学习设置</div>
+        <!-- Quick Settings -->
+        <div class="word-card" style="margin-top: 12px; padding: 12px;">
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select id="version-select" onchange="updateWordVersion(this.value)"
                     style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
@@ -3299,69 +3919,149 @@
             </select>
             <button class="word-btn secondary" onclick="showAllWords()">📚 词库</button>
             <button class="word-btn secondary" onclick="showFlashcardMode()">🃏 闪卡</button>
-            <button class="word-btn secondary" onclick="showQuizMode()">📝 测验</button>
-            <button class="word-btn secondary" onclick="showFavorites()">⭐ 收藏</button>
           </div>
         </div>
-
-        <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
-          <div style="background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
-            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${filteredWords.length}</div>
-            <div style="font-size: 11px; color: var(--text-secondary);">当前词数</div>
-          </div>
-          <div style="background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
-            <div style="font-size: 20px; font-weight: 700; color: var(--yellow);">${state.learning.learnedWords.length}</div>
-            <div style="font-size: 11px; color: var(--text-secondary);">已掌握</div>
-          </div>
-          <div style="background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
-            <div style="font-size: 20px; font-weight: 700; color: var(--orange);">${state.wordFavorites.length}</div>
-            <div style="font-size: 11px; color: var(--text-secondary);">收藏</div>
-          </div>
-          <div style="background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
-            <div style="font-size: 20px; font-weight: 700; color: var(--green);">${Object.keys(state.wordMastery).length}</div>
-            <div style="font-size: 11px; color: var(--text-secondary);">复习中</div>
-          </div>
-        </div>
-
-        <!-- Mastery Progress -->
-        <div class="word-card" style="margin-bottom: 16px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 13px; color: var(--text-secondary);">掌握度分布</span>
-            <span style="font-size: 12px; color: var(--text-secondary);">${getMasteryStats(filteredWords)}</span>
-          </div>
-          <div style="display: flex; gap: 4px; height: 8px; border-radius: 4px; overflow: hidden;">
-            ${getMasteryBar(filteredWords)}
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--text-secondary);">
-            <span>陌生</span><span>认识</span><span>熟悉</span><span>掌握</span>
-          </div>
-        </div>
-
-        <div class="section-header">
-          <div class="section-icon" style="background: rgba(255,193,7,0.1);">⭐</div>
-          <div class="section-info">
-            <div class="section-title">核心词汇</div>
-            <div class="section-subtitle">${coreWords.length} 个重点词汇</div>
-          </div>
-        </div>
-
-        ${coreWords.slice(0, 5).map(word => renderWordCard(word)).join('')}
-
-        <div class="section-header">
-          <div class="section-icon" style="background: rgba(79,134,247,0.1);">📚</div>
-          <div class="section-info">
-            <div class="section-title">学习词汇</div>
-            <div class="section-subtitle">随机展示</div>
-          </div>
-        </div>
-
-        ${filteredWords.slice(0, 10).map(word => renderWordCard(word)).join('')}
-
-        <button class="word-btn secondary" style="width:100%; margin-top: 8px;" onclick="showAllWords()">
-          查看全部词汇
-        </button>
       `;
+    }
+
+    // 艾宾浩斯复习计划计算
+    function calculateEbbinghausReview(word, quality) {
+      // quality: 0-5 (0=完全忘记, 5=完美记住)
+      const record = state.reviewRecords[word] || { interval: 1, easeFactor: 2.5, repetitions: 0 };
+
+      let { interval, easeFactor, repetitions } = record;
+
+      if (quality < 3) {
+        // 忘记：从头开始
+        repetitions = 0;
+        interval = 1;
+      } else {
+        // 记住
+        if (repetitions === 0) {
+          interval = 1;
+        } else if (repetitions === 1) {
+          interval = 6;
+        } else {
+          interval = Math.round(interval * easeFactor);
+        }
+        repetitions++;
+      }
+
+      // 更新容易度因子
+      easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      if (easeFactor < 1.3) easeFactor = 1.3;
+
+      // 计算下次复习时间
+      const now = Date.now();
+      const nextReview = now + interval * 24 * 60 * 60 * 1000; // interval in days
+
+      state.reviewRecords[word] = { nextReview, interval, easeFactor, repetitions };
+      saveState();
+
+      return { interval, nextReview };
+    }
+
+    // 获取待复习的单词
+    function getWordsForReview() {
+      const now = Date.now();
+      const words = [];
+      for (const [word, record] of Object.entries(state.reviewRecords)) {
+        if (record.nextReview <= now) {
+          words.push({
+            word,
+            ...record,
+            mastery: state.wordMastery[word] || 0
+          });
+        }
+      }
+      return words.sort((a, b) => a.nextReview - b.nextReview);
+    }
+
+    // 显示复习界面
+    function showReview() {
+      const wordsForReview = getWordsForReview();
+      if (wordsForReview.length === 0) {
+        showToast('暂无需要复习的单词');
+        return;
+      }
+      startReviewSession(wordsForReview);
+    }
+
+    // 开始复习会话
+    let reviewIndex = 0;
+    let reviewWords = [];
+
+    function startReviewSession(words) {
+      reviewWords = words;
+      reviewIndex = 0;
+      renderReviewCard();
+    }
+
+    function renderReviewCard() {
+      if (reviewIndex >= reviewWords.length) {
+        showModal(`
+          <div class="detail-header">
+            <span class="detail-title">复习完成</span>
+          </div>
+          <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">太棒了！</div>
+            <div style="color: var(--text-secondary);">你已完成 ${reviewWords.length} 个单词的复习</div>
+            <button class="word-btn" onclick="closeModal()" style="margin-top: 24px; width: 100%;">返回</button>
+          </div>
+        `);
+        return;
+      }
+
+      const wordData = reviewWords[reviewIndex];
+      const word = WORDS[currentExam]?.find(w => w.word === wordData.word) || { word: wordData.word, phonetic: '', meanings: ['未知'] };
+
+      showModal(`
+        <div class="detail-header">
+          <button class="back-btn" onclick="closeModal()">×</button>
+          <span class="detail-title">复习 ${reviewIndex + 1}/${reviewWords.length}</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">${wordData.interval}天后复习</span>
+        </div>
+        <div style="padding: 30px 20px; text-align: center;">
+          <div style="font-size: 36px; font-weight: 700; margin-bottom: 8px;">${word.word}</div>
+          <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">${word.phonetic || ''}</div>
+          <div style="font-size: 16px; color: var(--primary); margin-bottom: 30px;">${Array.isArray(word.meanings) ? word.meanings.join(' · ') : word.meaning}</div>
+
+          <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">你觉得这个单词的记忆难度如何？</div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <div style="flex: 1; text-align: center; padding: 12px 8px; background: #FFEBEE; border-radius: 8px; cursor: pointer; transition: transform 0.1s;" onclick="reviewResult('${word.word}', 0)" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="font-size: 24px;">😢</div>
+              <div style="font-size: 11px; color: #F44336;">完全忘记</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 12px 8px; background: #FFF3E0; border-radius: 8px; cursor: pointer; transition: transform 0.1s;" onclick="reviewResult('${word.word}', 2)" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="font-size: 24px;">🤔</div>
+              <div style="font-size: 11px; color: #FF9800;">有点模糊</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 12px 8px; background: #E3F2FD; border-radius: 8px; cursor: pointer; transition: transform 0.1s;" onclick="reviewResult('${word.word}', 3)" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="font-size: 24px;">😊</div>
+              <div style="font-size: 11px; color: #2196F3;">记得</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 12px 8px; background: #E8F5E9; border-radius: 8px; cursor: pointer; transition: transform 0.1s;" onclick="reviewResult('${word.word}', 5)" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+              <div style="font-size: 24px;">🎉</div>
+              <div style="font-size: 11px; color: #4CAF50;">完美记住</div>
+            </div>
+          </div>
+
+          <button class="word-btn secondary" onclick="speakWord('${word.word}')" style="width: 100%;">🔊 听发音</button>
+        </div>
+      `);
+    }
+
+    function reviewResult(word, quality) {
+      calculateEbbinghausReview(word, quality);
+      reviewIndex++;
+      renderReviewCard();
+    }
+
+    function showVocabLearning() {
+      // Redirect to the learning section with words
+      showAllWords();
     }
 
     function searchWord() {
@@ -3375,12 +4075,6 @@
 
     function updateWordVersion(version) {
       state.wordSettings.version = version;
-      saveState();
-      renderAbilityContent();
-    }
-
-    function updateWordOrder(order) {
-      state.wordSettings.order = order;
       saveState();
       renderAbilityContent();
     }
@@ -3517,6 +4211,11 @@
     function flashcardResult(level) {
       const word = flashcardWords[flashcardIndex];
       const current = state.wordMastery[word.word] || 0;
+      // Map flashcard level (0-3) to Ebbinghaus quality (0-5)
+      // 0: 不认识 -> 0, 1: 有点印象 -> 2, 2: 认识 -> 4, 3: 掌握 -> 5
+      const qualityMap = [0, 2, 4, 5];
+      const quality = qualityMap[level] || 2;
+
       if (level === 0) {
         state.wordMastery[word.word] = Math.max(0, current - 1);
       } else if (level === 3) {
@@ -3524,6 +4223,8 @@
       } else {
         state.wordMastery[word.word] = Math.min(5, current + 1);
       }
+      // Calculate next review time using Ebbinghaus
+      calculateEbbinghausReview(word.word, quality);
       saveState();
       flashcardNext();
     }
@@ -3824,6 +4525,9 @@
 
         // Update ability
         state.abilities.vocab = Math.min(100, state.abilities.vocab + 1);
+
+        // Initialize Ebbinghaus review record (first time learning = quality 3)
+        calculateEbbinghausReview(word, 3);
 
         // Mark daily task
         if (!state.dailyTasks.vocab) {
@@ -4133,10 +4837,11 @@
       if (state.pet.exp >= expNeeded) {
         state.pet.level++;
         showToast(`🎉 恭喜！宠物升级到 Lv.${state.pet.level}！`);
+        checkEvolution();
       }
 
       saveState();
-      renderPet();
+      renderPetContent();
       renderCalendar();
       renderDailyTasks();
       updateProfileStats();
@@ -4160,9 +4865,10 @@
       state.pet.hunger = Math.min(100, state.pet.hunger + rewards[food]);
       state.pet.happiness = Math.min(100, state.pet.happiness + rewards[food] / 4);
       state.pet.exp += 5;
+      checkEvolution();
 
       saveState();
-      renderPet();
+      renderPetContent();
       updateHeader();
 
       showToast(`喂食成功！+${rewards[food]} 饱食度`);
@@ -4197,161 +4903,17 @@
       }
 
       saveState();
-      renderPet();
+      renderPetContent();
       updateHeader();
     }
 
-    // ============== Pet Speaking Dialog ==============
-    let currentSpeakingTopic = '';
-
-    const SPEAKING_TOPICS = {
-      greeting: {
-        prompts: ['Say "Hello, how are you today?"', 'Say "Good morning!"', 'Say "Nice to meet you!"'],
-        keywords: ['hello', 'hi', 'good', 'morning', 'nice', 'meet', 'you', 'how', 'are', 'today'],
-        responses: [
-          'Hello! Great job! Your pronunciation is improving!',
-          'That\'s wonderful! Keep practicing with me!',
-          'Excellent! You\'re becoming a natural English speaker!'
-        ]
-      },
-      weather: {
-        prompts: ['Say "It\'s a beautiful day today."', 'Say "The weather is nice."', 'Say "I like sunny days."'],
-        keywords: ['weather', 'sunny', 'beautiful', 'day', 'nice', 'like', 'rain', 'cloud', 'warm', 'cold'],
-        responses: [
-          'Perfect! The weather vocabulary is spot on!',
-          'Wonderful! Your weather expressions are getting better!',
-          'Excellent work! Keep exploring more weather phrases!'
-        ]
-      },
-      hobby: {
-        prompts: ['Say "I like reading books."', 'Say "My hobby is learning languages."', 'Say "I enjoy playing sports."'],
-        keywords: ['like', 'love', 'hobby', 'reading', 'books', 'learning', 'languages', 'enjoy', 'playing', 'sports', 'music', 'my'],
-        responses: [
-          'Fantastic! Your hobby vocabulary is growing!',
-          'Great job! Keep telling me about your hobbies!',
-          'Wonderful! You\'re doing amazing with vocabulary!'
-        ]
-      },
-      food: {
-        prompts: ['Say "I like eating pizza."', 'Say "Food is delicious."', 'Say "My favorite food is pasta."'],
-        keywords: ['like', 'love', 'eating', 'food', 'favorite', 'delicious', 'pizza', 'pasta', 'chicken', 'rice', 'fruit', 'vegetable'],
-        responses: [
-          'Yummy! Your food vocabulary is getting tasty!',
-          'Great! Keep exploring more food vocabulary!',
-          'Delicious work! Your pronunciation is improving!'
-        ]
-      }
-    };
-
-    function startPetSpeaking(topic) {
-      currentSpeakingTopic = topic;
-      const topicData = SPEAKING_TOPICS[topic];
-      const randomPrompt = topicData.prompts[Math.floor(Math.random() * topicData.prompts.length)];
-
-      document.getElementById('pet-speaking-status').textContent = `Topic: ${topic}`;
-      document.getElementById('speaking-result-pet').innerHTML = `
-        <div style="margin-bottom: 8px;">${state.pet.emoji} says:</div>
-        <div style="font-style: italic;">"${randomPrompt}"</div>
-      `;
-
-      // Speak the prompt
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(randomPrompt);
-        utterance.lang = 'en-GB';
-        utterance.rate = 0.8;
-        speechSynthesis.speak(utterance);
-      }
-    }
-
-    function startPetSpeechRecognition() {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showToast('浏览器不支持语音识别');
-        return;
-      }
-
-      const btn = document.getElementById('pet-speaking-btn');
-      const result = document.getElementById('speaking-result-pet');
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      btn.classList.add('recording');
-      result.innerHTML = '<div style="color: var(--primary);">🗣️ 正在录音...</div>';
-
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        result.innerHTML = `<div style="margin-bottom: 8px;">🗣️ You said:</div><div>"${event.results[0][0].transcript}"</div><div style="color: var(--text-secondary); margin-top: 8px;">🤖 AI 评分中...</div>`;
-
-        // Use AI to score and respond
-        setTimeout(async () => {
-          const topicData = SPEAKING_TOPICS[currentSpeakingTopic];
-          const topicNames = { greeting: '打招呼', weather: '天气', hobby: '爱好', food: '食物' };
-
-          const messages = [
-            { role: 'system', content: '你是一个英语口语练习伙伴，用中文点评用户的英语口语，指出错误并给出改进建议。最后给出70-100的评分。' },
-            { role: 'user', content: `用户在练习 "${topicNames[currentSpeakingTopic]}" 话题时说了： "${transcript}"
-
-请点评并给出评分，格式：
-点评：...
-评分：XX/100` }
-          ];
-
-          const aiResponse = await callAI(messages);
-
-          const score = 70 + Math.floor(Math.random() * 20); // Fallback score
-          const response = topicData.responses[Math.floor(Math.random() * topicData.responses.length)];
-
-          result.innerHTML = `
-            <div style="margin-bottom: 8px;">🗣️ You said:</div>
-            <div>"${event.results[0][0].transcript}"</div>
-            <div style="margin-top: 12px; padding: 12px; background: rgba(78, 205, 196, 0.1); border-radius: 8px;">
-              <div style="margin-bottom: 4px;">🤖 AI 点评:</div>
-              <div style="font-style: italic; line-height: 1.6;">${aiResponse}</div>
-              <div style="margin-top: 8px; font-weight: 600; color: var(--teal);">AI 评分: ${score}/100</div>
-            </div>
-          `;
-
-          // Rewards
-          state.learning.totalStudyMinutes += 3;
-          state.pet.exp += 8;
-          state.pet.happiness = Math.min(100, state.pet.happiness + 5);
-          state.learning.points += 5;
-          state.abilities.speaking = Math.min(100, state.abilities.speaking + Math.floor(score / 20));
-
-          if (!state.dailyTasks.speaking) {
-            state.dailyTasks.speaking = true;
-            showToast('今日口语任务完成！');
-          }
-
-          saveState();
-          updateHeader();
-        }, 1000);
-      };
-
-      recognition.onerror = function(event) {
-        result.innerHTML = '<div style="color: var(--danger);">识别失败，请重试</div>';
-        btn.classList.remove('recording');
-      };
-
-      recognition.onend = function() {
-        btn.classList.remove('recording');
-      };
-
-      recognition.start();
-    }
-
-    // ============== Pet Death ==============
-    function revivePet() {
+        function revivePet() {
       // Reset everything except exam selection
       const selectedExam = state.user.selectedExam;
 
       state = {
         user: { nickname: state.user.nickname, petName: '小黄', selectedExam, hasCompletedOnboarding: true, createdAt: new Date().toISOString() },
-        abilities: { vocab: 50, listening: 50, speaking: 50, reading: 50, writing: 50 },
+        abilities: { vocab: 0 },
         learning: { learnedWords: [], completedTasks: [], totalStudyMinutes: 0, points: 50 },
         pet: { type: 'cat', emoji: '🐱', color: '#FFD93D', name: '小黄', level: 1, exp: 0, hunger: 80, happiness: 90, isDead: false },
         checkin: { dates: [], streak: 0, longestStreak: 0 },
@@ -4364,7 +4926,7 @@
 
       saveState();
       document.getElementById('dead-pet-overlay').style.display = 'none';
-      renderPet();
+      renderPetContent();
       renderCalendar();
       renderDailyTasks();
       updateProfileStats();
@@ -4406,10 +4968,812 @@
         state.pet.name = newName.trim();
         state.user.petName = newName.trim();
         saveState();
-        renderPet();
+        renderPetContent();
         updateProfileStats();
         showToast('宠物名字已修改');
       }
+    }
+
+    // ============== Word Roots Canvas (Phase 1) ==============
+    function showWordRootsCanvas() {
+      const rootKeys = Object.keys(WORD_ROOTS);
+      const totalPrefixes = rootKeys.filter(k => WORD_ROOTS[k].type === 'prefix').length;
+      const totalRoots = rootKeys.filter(k => WORD_ROOTS[k].type === 'root').length;
+      const totalSuffixes = rootKeys.filter(k => WORD_ROOTS[k].type === 'suffix').length;
+
+      const html = `
+        <div class="detail-header">
+          <button class="back-btn" onclick="closeModal()">×</button>
+          <span class="detail-title">词根画布</span>
+        </div>
+        <div style="padding: 16px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+            <button class="word-btn ${getLearnedRoots().length === 0 ? '' : 'secondary'}" onclick="filterRootsCanvas('all')">全部</button>
+            <button class="word-btn" onclick="filterRootsCanvas('prefix')">前缀 (${totalPrefixes})</button>
+            <button class="word-btn" onclick="filterRootsCanvas('root')">词根 (${totalRoots})</button>
+            <button class="word-btn" onclick="filterRootsCanvas('suffix')">后缀 (${totalSuffixes})</button>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <input type="text" id="roots-search" placeholder="搜索词根..."
+                   style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
+                   oninput="searchRootsCanvas()">
+          </div>
+
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+            已学习词根: <span id="learned-roots-count">${getLearnedRoots().length}</span> / ${rootKeys.length}
+          </div>
+
+          <div id="roots-canvas-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            ${rootKeys.slice(0, 50).map(key => {
+              const root = WORD_ROOTS[key];
+              const learned = getLearnedRoots().includes(key);
+              return `
+                <div class="word-card root-card ${learned ? 'learned' : ''}" data-root="${key}" data-type="${root.type}" onclick="showRootDetail('${key}')">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${root.type === 'prefix' ? 'rgba(79,134,247,0.2)' : root.type === 'root' ? 'rgba(123,92,250,0.2)' : 'rgba(78,205,196,0.2)'}; color: ${root.type === 'prefix' ? 'var(--primary)' : root.type === 'root' ? 'var(--purple)' : 'var(--teal)'};">${root.type === 'prefix' ? '前缀' : root.type === 'root' ? '词根' : '后缀'}</span>
+                    ${learned ? '<span style="font-size: 10px;">✅</span>' : ''}
+                  </div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">${key}</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">${root.meaning}</div>
+                  <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;">${root.words.slice(0, 3).join(', ')}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function filterRootsCanvas(type) {
+      const cards = document.querySelectorAll('.root-card');
+      cards.forEach(card => {
+        if (type === 'all' || card.getAttribute('data-type') === type) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function searchRootsCanvas() {
+      const query = document.getElementById('roots-search').value.toLowerCase();
+      const cards = document.querySelectorAll('.root-card');
+      cards.forEach(card => {
+        const root = card.getAttribute('data-root').toLowerCase();
+        const rootData = WORD_ROOTS[card.getAttribute('data-root')];
+        const matches = root.includes(query) || rootData.meaning.includes(query) || rootData.words.some(w => w.toLowerCase().includes(query));
+        card.style.display = matches ? 'block' : 'none';
+      });
+    }
+
+    function showRootDetail(key) {
+      const root = WORD_ROOTS[key];
+      if (!root) return;
+
+      const learned = getLearnedRoots().includes(key);
+      const progress = getRootProgress(key);
+
+      const html = `
+        <div class="detail-header">
+          <button class="back-btn" onclick="showWordRootsCanvas()">←</button>
+          <span class="detail-title">${key}</span>
+        </div>
+        <div style="padding: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 40px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">${key}</div>
+            <div style="font-size: 14px; color: ${root.type === 'prefix' ? 'var(--primary)' : root.type === 'root' ? 'var(--purple)' : 'var(--teal)'};">
+              ${root.type === 'prefix' ? '前缀' : root.type === 'root' ? '词根' : '后缀'} · ${root.meaning}
+            </div>
+          </div>
+
+          <div style="background: var(--bg); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">包含词汇</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              ${root.words.map(w => `<span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid var(--border);">${w}</span>`).join('')}
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">学习进度</div>
+            <div style="height: 6px; background: var(--border); border-radius: 3px;">
+              <div style="height: 100%; width: ${progress}%; background: var(--primary); border-radius: 3px;"></div>
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${progress}% 完成</div>
+          </div>
+
+          <button class="word-btn ${learned ? 'secondary' : ''}" onclick="markRootLearned('${key}')" style="width: 100%;">
+            ${learned ? '✓ 已学习' : '✓ 标记为已学习'}
+          </button>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function markRootLearned(key) {
+      saveLearnedRoot(key);
+      showToast('已标记为学习');
+      showRootDetail(key);
+      // Update count
+      const countEl = document.getElementById('learned-roots-count');
+      if (countEl) {
+        countEl.textContent = getLearnedRoots().length;
+      }
+      // Update card
+      const card = document.querySelector(`.root-card[data-root="${key}"]`);
+      if (card) {
+        card.classList.add('learned');
+        const checkmark = card.querySelector('span:has(+ span)');
+      }
+    }
+
+    // ============== Daily Hot Words (Phase 2) ==============
+    // Meme/梗 数据库
+    const MEME_DATABASE = {
+      // 常见单词梗
+      abandon: '🔺 第一个单词就是 abandon，永远不会 abandon 考试',
+      ability: '💪 你有这个 ability 吗？',
+      achieve: '🏆 要 achieve 什么？先 achieve 一个亿？',
+      about: '📖 About 这个词，about 那本书',
+      amazing: '🤯 这也太 amazing 了！',
+      awesome: '🔥 真的 awesome 到爆！',
+      basic: '📚 基础基础，basic 得不能再 basic',
+      beautiful: '💅 你今天真的很 beautiful 诶',
+      believe: '🤔 信不信？believe 一下？',
+      benefit: '💰 有什么 benefit？先给我 benefit',
+      better: '⬆️ 要做 better 的人！',
+      billion: '💵 一个 billion 是多少？',
+      business: '💼 今天 business 怎么样？',
+      challenge: '⚡ 接受 challenge！',
+      chance: '🎰 给我一个 chance 吧！',
+      change: '🔄 改变 change，从今天开始',
+      coffee: '☕ Coffee time! 续命水',
+      comfortable: '😌 太 comfortable 了，不想动',
+      common: '🤝 很 common 的事情',
+      community: '🏘️ 我们 community 很温馨',
+      company: '🏢 你的 company 是哪个？',
+      complete: '✅ Complete！完成了！',
+      consider: '🤔 Consider 一下这个',
+      continue: '➡️ Continue！继续冲！',
+      control: '🎮 我要 control 一切！',
+      country: '🌍 我们 country 很伟大',
+      create: '🎨 Create 一个新世界',
+      culture: '🎭 Culture 文化，了解一下',
+      current: '📅 Current 现在的时间',
+      decision: '🤔 Make a decision！做决定！',
+      describe: '📝 Describe 一下这个场景',
+      develop: '🚀 Develop 一下新技能',
+      difference: '⚖️ 有什么 difference？',
+      difficult: '😓 这个 difficult 吗？',
+      direct: '➡️ Direct 直达！',
+      discover: '🔍 Discover 新大陆！',
+      discuss: '💬 Discuss 讨论一下',
+      economy: '📊 Economy 经济情况',
+      education: '📚 Education 是关键',
+      effect: '💥 What effect？这效果！',
+      effort: '💪 Make an effort！努力！',
+      employee: '👔 作为一个 employee',
+      energy: '⚡ Energy 满满！正能量！',
+      environment: '🌿 Environment 环境问题',
+      especially: '🌟 Especially 特别是这个',
+      establish: '🏗️ Establish 建立起来',
+      event: '🎉 什么 event？活动？',
+      every: '🔢 Every 每一个！',
+      everything: '🌈 Everything 都是最好的安排',
+      exist: '💭 Exist 存在吗？',
+      experience: '🎓 Experience 经验很重要',
+      expert: '🧠 你是个 expert！专家！',
+      explain: '📢 Explain 解释一下',
+      extremely: '🤯 Extremely 极端地！',
+      factor: '🔢 Factor 因素是什么',
+      fail: '❌ Fail 了？再试！',
+      family: '👨‍👩‍👧 Family 家人最重要',
+      figure: '🧮 Figure out 算出来！',
+      finally: '🎊 Finally 最后！终于！',
+      follow: '👣 Follow me！跟我走！',
+      force: '💪 Force 力量！Force！',
+      forget: '🧠 不要 forget！记住！',
+      form: '📋 Form 表格，表格形式',
+      found: '🔍 Found it！找到了！',
+      free: '🕊️ Free 自由！免费！',
+      friend: '👫 Friend 朋友！',
+      front: '👀 In front of 在前面',
+      future: '🔮 Future 未来！',
+      game: '🎮 Game 游戏时间！',
+      generate: '⚙️ Generate 生成！',
+      given: '📝 Given that 既然...',
+      global: '🌍 Global 全球！',
+      good: '👍 Good！很好！',
+      great: '👏 Great！太棒了！',
+      group: '👥 Group 小组！',
+      happen: '💥 Happen 发生！',
+      health: '🏥 Health 健康第一',
+      history: '📜 History 历史',
+      however: '🤔 However 但是...',
+      idea: '💡 Idea 主意！好点子！',
+      image: '🖼️ Image 形象！',
+      important: '⭐ Important 重要！',
+      include: '➕ Include 包括',
+      increase: '📈 Increase 增加！',
+      individual: '👤 Individual 个人',
+      information: 'ℹ️ Information 信息',
+      interesting: '😄 Interesting 有趣！',
+      involve: '🤝 Involve 涉及',
+      issue: '❓ Issue 问题',
+      job: '💼 Job 工作！',
+      knowledge: '📚 Knowledge 知识',
+      language: '🗣️ Language 语言',
+      large: '📏 Large 大！',
+      leader: '👑 Leader 领导',
+      left: '⬅️ Left 左边',
+      level: '📊 Level 等级',
+      life: '🌱 Life 生活/生命',
+      like: '❤️ Like 喜欢',
+      limit: '⛔ Limit 限制',
+      list: '📝 List 列表',
+      local: '🏘️ Local 本地的',
+      look: '👀 Look 看！',
+      love: '💕 Love 爱！',
+      maintain: '🔧 Maintain 维护',
+      major: '🎓 Major 专业/主要的',
+      manage: '📊 Manage 管理',
+      many: '🔢 Many 很多',
+      matter: '❓ Matter 事情',
+      mean: '😏 Mean 意思是...',
+      measure: '📏 Measure 测量',
+      mention: '💬 Mention 提到',
+      method: '🔧 Method 方法',
+      million: '💵 Million 百万',
+      mind: '🧠 Mind 头脑',
+      miss: '💔 Miss 想念/错过',
+      model: '🏗️ Model 模型',
+      modern: '🚀 Modern 现代的',
+      moment: '⏰ Moment 时刻',
+      money: '💰 Money 钱！',
+      morning: '🌅 Morning 早上',
+      most: '⬆️ Most 最多的',
+      mother: '👩 Mother 妈妈',
+      move: '🚚 Move 移动',
+      much: '📏 Much 很多',
+      music: '🎵 Music 音乐',
+      name: '📛 Name 名字',
+      national: '🇨🇳 National 国家的',
+      need: '❓ Need 需要',
+      network: '🌐 Network 网络',
+      news: '📰 News 新闻',
+      night: '🌙 Night 晚上',
+      notice: '📢 Notice 注意！',
+      number: '🔢 Number 数字',
+      occur: '💥 Occur 发生',
+      offer: '🎁 Offer 提供/提议',
+      office: '🏢 Office 办公室',
+      often: '🔄 Often 经常',
+      once: '1️⃣ Once 一次',
+      only: '1️⃣ Only 只有',
+      open: '🚪 Open 打开',
+      opinion: '💭 Opinion 观点',
+      opportunity: '🌟 Opportunity 机会',
+      order: '📋 Order 订单/顺序',
+      organization: '🏛️ Organization 组织',
+      original: '🎨 Original 原创的',
+      other: '🔄 Other 其他',
+      parent: '👨‍👩‍👧 Parent 父母',
+      part: '📦 Part 部分',
+      patient: '😌 Patient 耐心的/病人',
+      pattern: '🔲 Pattern 模式',
+      pay: '💵 Pay 支付',
+      people: '👥 People 人们',
+      percent: '📊 Percent 百分比',
+      perfect: '💯 Perfect 完美！',
+      period: '⏳ Period 时期',
+      person: '👤 Person 人',
+      physical: '🏃 Physical 身体的',
+      plan: '📝 Plan 计划',
+      point: '📍 Point 点',
+      policy: '📜 Policy 政策',
+      possible: '🤔 Possible 可能的',
+      power: '⚡ Power 力量',
+      practice: '📖 Practice 练习',
+      present: '🎁 Present 现在的/礼物',
+      president: '🏛️ President 总统',
+      problem: '❓ Problem 问题',
+      process: '⚙️ Process 过程',
+      produce: '🏭 Produce 生产',
+      product: '📦 Product 产品',
+      program: '💻 Program 程序',
+      property: '🏠 Property 财产',
+      provide: '🎁 Provide 提供',
+      public: '🏛️ Public 公共的',
+      question: '❓ Question 问题',
+      ready: '✅ Ready 准备好',
+      real: '🎯 Real 真实的',
+      reason: '🤔 Reason 原因',
+      receive: '📬 Receive 接收',
+      recent: '📅 Recent 最近的',
+      record: '📝 Record 记录',
+      reduce: '📉 Reduce 减少',
+      relation: '🔗 Relation 关系',
+      remain: '⏳ Remain 仍然是',
+      remember: '🧠 Remember 记住',
+      report: '📄 Report 报告',
+      represent: '📣 Represent 代表',
+      require: '❓ Require 需要',
+      research: '🔬 Research 研究',
+      resource: '📦 Resource 资源',
+      respond: '💬 Respond 回应',
+      result: '📊 Result 结果',
+      return: '↩️ Return 返回',
+      reveal: '🔍 Reveal 揭示',
+      right: '➡️ Right 右边/正确的',
+      risk: '⚠️ Risk 风险',
+      rule: "📜 Rule 规则",
+      same: '🔁 Same 相同',
+      school: '🏫 School 学校',
+      seem: '🤔 Seem 看起来',
+      self: '🪞 Self 自己',
+      service: '🛠️ Service 服务',
+      set: '📦 Set 设置',
+      share: '🤝 Share 分享',
+      short: '📏 Short 短',
+      show: '📺 Show 显示',
+      similar: '🔄 Similar 相似',
+      simple: '😌 Simple 简单',
+      since: '⏰ Since 自从',
+      single: '1️⃣ Single 单一的',
+      situation: '📍 Situation 情况',
+      skill: '🎯 Skill 技能',
+      small: '📏 Small 小',
+      social: '👥 Social 社会的',
+      society: '🏛️ Society 社会',
+      solution: '💡 Solution 解决方案',
+      special: '⭐ Special 特别的',
+      start: '🚀 Start 开始',
+      state: '🏛️ State 状态/州',
+      story: '📖 Story 故事',
+      strategy: '🎯 Strategy 策略',
+      strength: '💪 Strength 力量',
+      structure: '🏗️ Structure 结构',
+      student: '🎓 Student 学生',
+      study: '📚 Study 学习',
+      style: '🎨 Style 风格',
+      success: '🏆 Success 成功',
+      suggest: '💡 Suggest 建议',
+      summer: '☀️ Summer 夏天',
+      support: '🤝 Support 支持',
+      system: '⚙️ System 系统',
+      talk: '💬 Talk 说话',
+      teacher: '👨‍🏫 Teacher 老师',
+      team: '👥 Team 团队',
+      technology: '💻 Technology 科技',
+      term: '📝 Term 学期/术语',
+      test: '📝 Test 测试',
+      theory: '🧠 Theory 理论',
+      think: '🤔 Think 思考',
+      though: '🤔 Though 虽然',
+      time: '⏰ Time 时间',
+      today: '📅 Today 今天',
+      together: '👫 Together 一起',
+      tomorrow: '📅 Tomorrow 明天',
+      tonight: '🌙 Tonight 今晚',
+      total: '📊 Total 总计',
+      town: '🏘️ Town 城镇',
+      trade: '💱 Trade 贸易',
+      training: '📚 Training 培训',
+      travel: '✈️ Travel 旅行',
+      treat: '🍽️ Treat 对待',
+      try: '💪 Try 尝试',
+      turn: '🔄 Turn 转向',
+      type: '⌨️ Type 类型',
+      understand: '🤓 Understand 理解',
+      university: '🎓 University 大学',
+      until: '⏰ Until 直到',
+      use: ' use 使用',
+      usually: '🔄 Usually 通常',
+      value: '💎 Value 价值',
+      view: '👀 View 观点',
+      wait: '⏳ Wait 等一下',
+      want: '🥺 Want 想要',
+      war: '⚔️ War 战争',
+      water: '💧 Water 水',
+      way: '🛤️ Way 方式',
+      week: '📅 Week 周',
+      weight: '🏋️ Weight 重量',
+      whole: '🔵 Whole 全部',
+      window: '🪟 Window 窗户',
+      winner: '🏆 Winner 赢家',
+      without: '🚫 Without 没有',
+      wonder: '🤔 Wonder 想知道',
+      word: '📝 Word 单词',
+      work: '💼 Work 工作',
+      world: '🌍 World 世界',
+      write: '✍️ Write 写',
+      year: '📅 Year 年',
+      yesterday: '📅 Yesterday 昨天'
+    };
+
+    function getTodayDate() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function generateDailyHotWords() {
+      const today = getTodayDate();
+      const allWords = WORDS[currentExam] || WORDS.cet4;
+
+      // 真随机抽5个词
+      const shuffled = [...allWords].sort(() => Math.random() - 0.5);
+      const selectedWords = shuffled.slice(0, 5);
+
+      const hotWords = selectedWords.map(w => {
+        // 随机选一个例句，或者生成默认例句
+        let example = w.example;
+        if (!example && w.meanings && w.meanings.length > 0) {
+          example = `This is a common word: ${w.word} means ${w.meanings[0]}.`;
+        }
+
+        return {
+          word: w.word,
+          phonetic: w.phonetic,
+          meaning: w.meanings ? w.meanings.join(', ') : '',
+          example: example,
+          meme: MEME_DATABASE[w.word.toLowerCase()] || getDefaultMeme(w.word),
+          date: today
+        };
+      });
+
+      state.dailyHotWords = hotWords;
+      state.lastHotWordsDate = today;
+      saveState();
+      return hotWords;
+    }
+
+    function getDefaultMeme(word) {
+      const defaultMemes = [
+        `📚 ${word} 是必背单词！`,
+        `🔥 ${word} 考到就是赚到！`,
+        `💯 ${word} 必须拿下！`,
+        `✨ ${word} 的意思是...记住了吗？`,
+        `🎯 ${word} 这个词很重要！`
+      ];
+      return defaultMemes[Math.floor(Math.random() * defaultMemes.length)];
+    }
+
+    function getDailyHotWords() {
+      const today = getTodayDate();
+      if (state.lastHotWordsDate !== today) {
+        return generateDailyHotWords();
+      }
+      return state.dailyHotWords;
+    }
+
+    function showDailyHotWords() {
+      const hotWords = getDailyHotWords();
+
+      const html = `
+        <div class="detail-header">
+          <button class="back-btn" onclick="closeModal()">×</button>
+          <span class="detail-title">🔥 每日热词</span>
+        </div>
+        <div style="padding: 16px;">
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+            随机抽取 · 每日更新
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
+            ${hotWords.map((w, i) => `
+              <div class="hot-word-chip ${i === 0 ? 'active' : ''}" onclick="showHotWordDetail(${i})" data-index="${i}">
+                ${w.word}
+              </div>
+            `).join('')}
+          </div>
+
+          <div id="hot-word-content">
+            ${renderHotWordCard(hotWords[0], 0)}
+          </div>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function renderHotWordCard(word, index) {
+      const memeText = word.meme || `💡 ${word.word} 是一个常用单词！`;
+      return `
+        <div class="word-card" style="padding: 20px; text-align: center;">
+          <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">${word.word}</div>
+          <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">${word.phonetic}</div>
+
+          <div style="background: linear-gradient(135deg, #fff3cd, #ffeeba); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #ffc107; text-align: left;">
+            <div style="font-size: 11px; color: #856404; margin-bottom: 4px; font-weight: 600;">💬 梗 / Meme</div>
+            <div style="font-size: 15px; color: #856404; line-height: 1.5; font-weight: 500;">${memeText}</div>
+          </div>
+
+          <div style="font-size: 16px; color: var(--primary); font-weight: 600; margin-bottom: 12px;">${word.meaning}</div>
+
+          <div style="background: var(--bg); border-radius: 12px; padding: 16px; text-align: left;">
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">📖 例句</div>
+            <div style="font-size: 14px; color: var(--text-primary); line-height: 1.6;">${word.example}</div>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="word-btn secondary" onclick="addToReview('${word.word}')" style="flex: 1;">
+              📚 加入复习
+            </button>
+            <button class="word-btn" onclick="toggleFavoriteWord('${word.word}')" style="flex: 1;">
+              ${state.wordFavorites.includes(word.word) ? '⭐ 已收藏' : '☆ 收藏'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function showHotWordDetail(index) {
+      const hotWords = getDailyHotWords();
+      document.getElementById('hot-word-content').innerHTML = renderHotWordCard(hotWords[index], index);
+
+      // Update chip active state
+      document.querySelectorAll('.hot-word-chip').forEach((chip, i) => {
+        chip.classList.toggle('active', i === index);
+      });
+    }
+
+    function addToReview(word) {
+      // Add to review records
+      if (!state.reviewRecords[word]) {
+        state.reviewRecords[word] = {
+          nextReview: Date.now(),
+          interval: 1,
+          easeFactor: 2.5,
+          repetitions: 0
+        };
+        saveState();
+        showToast('已加入复习计划');
+      } else {
+        showToast('已在复习计划中');
+      }
+    }
+
+    // ============== Pet Evolution System (Phase 3) ==============
+    const EVOLUTION_STAGES = {
+      // Stage 1: Baby forms
+      cat_baby: { name: '小猫咪', emoji: '🐱', minLevel: 1, expRequired: 0 },
+      dog_baby: { name: '小狗崽', emoji: '🐶', minLevel: 1, expRequired: 0 },
+      rabbit_baby: { name: '小兔兔', emoji: '🐰', minLevel: 1, expRequired: 0 },
+      bear_baby: { name: '小熊', emoji: '🐻', minLevel: 1, expRequired: 0 },
+      // Stage 2: Teen forms (level 5+)
+      cat_teen: { name: '少年猫', emoji: '🐈', minLevel: 5, expRequired: 500 },
+      dog_teen: { name: '少年犬', emoji: '🐕', minLevel: 5, expRequired: 500 },
+      rabbit_teen: { name: '少年兔', emoji: '🐇', minLevel: 5, expRequired: 500 },
+      bear_teen: { name: '少年熊', emoji: '❄️', minLevel: 5, expRequired: 500 },
+      // Stage 3: Adult forms (level 10+)
+      cat_adult: { name: '成年金', emoji: '🦁', minLevel: 10, expRequired: 1500 },
+      dog_adult: { name: '成年犬', emoji: '🐺', minLevel: 10, expRequired: 1500 },
+      rabbit_adult: { name: '成年兔', emoji: '🐰', minLevel: 10, expRequired: 1500 },
+      bear_adult: { name: '成年熊', emoji: '🐻‍❄️', minLevel: 10, expRequired: 1500 },
+      // Stage 4: Legendary forms (level 20+)
+      cat_legendary: { name: '传奇神猫', emoji: '🐱', minLevel: 20, expRequired: 3000 },
+      dog_legendary: { name: '传奇神犬', emoji: '🐶', minLevel: 20, expRequired: 3000 },
+      rabbit_legendary: { name: '传奇玉兔', emoji: '🐇', minLevel: 20, expRequired: 3000 },
+      bear_legendary: { name: '传奇熊王', emoji: '🐻', minLevel: 20, expRequired: 3000 }
+    };
+
+    function getEvolutionStage(type, level) {
+      if (level >= 20) return type + '_legendary';
+      if (level >= 10) return type + '_adult';
+      if (level >= 5) return type + '_teen';
+      return type + '_baby';
+    }
+
+    function checkEvolution() {
+      const pet = state.pet;
+      const currentStage = getEvolutionStage(pet.type, pet.level);
+      const stageData = EVOLUTION_STAGES[currentStage];
+
+      if (pet.level >= stageData.minLevel && pet.exp >= stageData.expRequired) {
+        // Check if there's a next evolution
+        const nextStageMap = {
+          cat_baby: 'cat_teen',
+          dog_baby: 'dog_teen',
+          rabbit_baby: 'rabbit_teen',
+          bear_baby: 'bear_teen',
+          cat_teen: 'cat_adult',
+          dog_teen: 'dog_teen',
+          rabbit_teen: 'rabbit_adult',
+          bear_teen: 'bear_adult',
+          cat_adult: 'cat_legendary',
+          dog_adult: 'dog_legendary',
+          rabbit_adult: 'rabbit_legendary',
+          bear_adult: 'bear_legendary'
+        };
+
+        const nextStage = nextStageMap[currentStage];
+        if (nextStage && EVOLUTION_STAGES[nextStage]) {
+          const nextData = EVOLUTION_STAGES[nextStage];
+          if (pet.exp >= nextData.expRequired) {
+            triggerEvolution(nextStage);
+          }
+        }
+      }
+    }
+
+    function triggerEvolution(newStage) {
+      const stageData = EVOLUTION_STAGES[newStage];
+      state.pet.type = newStage.split('_')[0];
+      state.pet.emoji = stageData.emoji;
+      state.pet.name = stageData.name;
+
+      // Show evolution animation
+      const html = `
+        <div style="text-align: center; padding: 40px 20px;">
+          <div id="evolution-animation" style="font-size: 80px; margin-bottom: 20px;">✨</div>
+          <div style="font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">进化成功！</div>
+          <div style="font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">你的宠物进化成了</div>
+          <div style="font-size: 28px; font-weight: 700; color: var(--purple); margin-bottom: 24px;">${stageData.name}</div>
+          <div style="font-size: 60px; margin-bottom: 24px;">${stageData.emoji}</div>
+          <button class="word-btn" onclick="closeModal(); renderPetContent();" style="padding: 12px 32px;">
+            太棒了！
+          </button>
+        </div>
+      `;
+      showModal(html);
+      saveState();
+    }
+
+    function renderPetContent() {
+      const pet = state.pet;
+      const stage = getEvolutionStage(pet.type, pet.level);
+      const stageData = EVOLUTION_STAGES[stage];
+      const nextStage = getNextEvolutionStage(pet.type, pet.level);
+      const expProgress = nextStage
+        ? Math.min(100, (pet.exp - stageData.expRequired) / (nextStage.expRequired - stageData.expRequired) * 100)
+        : 100;
+
+      const html = `
+        <div class="pet-container">
+          <div class="pet-radar" id="pet-radar"></div>
+
+          <div class="pet-stage">
+            <div class="pet-avatar" id="pet-avatar">${pet.emoji}</div>
+          </div>
+
+          <div class="pet-name" id="pet-name">${pet.name}</div>
+          <div class="pet-level">等级 Lv.<span id="pet-level">${pet.level}</span></div>
+          <div class="pet-stage-badge">${stageData.name}</div>
+
+          <div class="pet-stats" style="width: 100%; max-width: 350px; margin-top: 20px;">
+            <div class="stat-item">
+              <div class="stat-icon" style="background: rgba(255,107,107,0.1);">🍖</div>
+              <div class="stat-info">
+                <div class="stat-label">饱食度</div>
+                <div class="stat-bar"><div class="stat-bar-fill hunger" style="width: ${pet.hunger}%;"></div></div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon" style="background: rgba(255,217,61,0.1);">😊</div>
+              <div class="stat-info">
+                <div class="stat-label">开心值</div>
+                <div class="stat-bar"><div class="stat-bar-fill happiness" style="width: ${pet.happiness}%;"></div></div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon" style="background: rgba(79,134,247,0.1);">⭐</div>
+              <div class="stat-info">
+                <div class="stat-label">经验值</div>
+                <div class="stat-bar"><div class="stat-bar-fill exp" style="width: ${(pet.exp % 100)}%;"></div></div>
+              </div>
+            </div>
+          </div>
+
+          ${nextStage ? `
+            <div style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 12px;">
+              进化进度: ${expProgress.toFixed(0)}% (${pet.exp}/${nextStage.expRequired} exp)
+            </div>
+          ` : '<div style="font-size: 11px; color: var(--purple); text-align: center; margin-top: 12px;">已达最高形态！</div>'}
+
+          <div class="pet-abilities">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">宠物能力</div>
+            <div style="display: flex; justify-content: center; gap: 20px;">
+              <div class="ability-item" style="flex-direction: row; gap: 8px; padding: 16px 24px;">
+                <div class="ability-icon">📖</div>
+                <div class="ability-value">${state.abilities.vocab}</div>
+                <div class="ability-name">词汇能力</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pet-interactions">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">互动</div>
+            <div class="interact-grid">
+              <div class="interact-item" onclick="showFeedMenu()">
+                <div class="interact-icon">🍖</div>
+                <div class="interact-name">喂食</div>
+              </div>
+              <div class="interact-item" onclick="interactPet('pet')">
+                <div class="interact-icon">🤚</div>
+                <div class="interact-name">抚摸</div>
+              </div>
+              <div class="interact-item" onclick="interactPet('walk')">
+                <div class="interact-icon">🚶</div>
+                <div class="interact-name">遛宠物</div>
+              </div>
+              <div class="interact-item" onclick="interactPet('study')">
+                <div class="interact-icon">📚</div>
+                <div class="interact-name">一起学习</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; padding: 12px; background: var(--bg); border-radius: 12px;">
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+              💡 提示: 宠物等级越高，可以进化成更稀有的形态。与宠物互动、喂食、遛宠物和一起学习都可以获得经验值！
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('page-pet').innerHTML = html;
+      renderPetRadar();
+    }
+
+    function getNextEvolutionStage(type, level) {
+      const stage = getEvolutionStage(type, level);
+      const stageData = EVOLUTION_STAGES[stage];
+
+      // Check all possible evolutions from current stage
+      const evolutionOrder = ['baby', 'teen', 'adult', 'legendary'];
+      const currentIndex = evolutionOrder.indexOf(stage.split('_')[1]);
+
+      if (currentIndex < evolutionOrder.length - 1) {
+        const nextStageName = evolutionOrder[currentIndex + 1];
+        const nextStage = `${type}_${nextStageName}`;
+        if (EVOLUTION_STAGES[nextStage]) {
+          return EVOLUTION_STAGES[nextStage];
+        }
+      }
+      return null;
+    }
+
+    // ============== Feed Menu ==============
+    function showFeedMenu() {
+      const html = `
+        <div class="detail-header">
+          <button class="back-btn" onclick="renderPetContent();">←</button>
+          <span class="detail-title">🍖 喂食</span>
+        </div>
+        <div style="padding: 20px;">
+          <div style="display: grid; gap: 12px;">
+            <div class="word-card" style="cursor: pointer;" onclick="feedPet('apple')">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 32px;">🍎</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 14px; font-weight: 600;">苹果</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">恢复 25% 饱食度</div>
+                </div>
+                <div style="font-size: 12px; color: var(--orange);">5 积分</div>
+              </div>
+            </div>
+            <div class="word-card" style="cursor: pointer;" onclick="feedPet('pizza')">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 32px;">🍕</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 14px; font-weight: 600;">披萨</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">恢复 50% 饱食度</div>
+                </div>
+                <div style="font-size: 12px; color: var(--orange);">10 积分</div>
+              </div>
+            </div>
+            <div class="word-card" style="cursor: pointer;" onclick="feedPet('cake')">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 32px;">🎂</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 14px; font-weight: 600;">蛋糕</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">恢复 80% 饱食度</div>
+                </div>
+                <div style="font-size: 12px; color: var(--orange);">20 积分</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      showModal(html);
     }
 
     // ============== Modal ==============
