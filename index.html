@@ -1552,8 +1552,7 @@
       { id: 'cet4', name: 'CET-4', shortName: '四级', wordCount: 4543, color: '#4F86F7' },
       { id: 'cet6', name: 'CET-6', shortName: '六级', wordCount: 2165, color: '#7B5CFA' },
       { id: 'kaoyan', name: '考研', shortName: '考研', wordCount: 5304, color: '#4ECDC4' },
-      { id: 'toefl', name: '托福', shortName: '托福', wordCount: 4516, color: '#FFC107' },
-      { id: 'ielts', name: '雅思', shortName: '雅思', wordCount: 4516, color: '#FF7043' }
+      { id: 'touya', name: '托雅', shortName: '托雅', wordCount: 4516, color: '#FFC107' }
     ];
 
     const ABILITIES = [
@@ -1613,7 +1612,7 @@
         { word: 'ephemeral', phonetic: '/ɪˈfemərəl/', meanings: ['短暂的', '瞬息的'], example: 'Fame in the modern world is often ephemeral.', isCore: true },
         { word: 'paradigm', phonetic: '/ˈpærədaɪm/', meanings: ['范式', '典范'], example: 'This is a new paradigm.', isCore: true }
       ],
-      ielts: [
+      touya: [
         { word: 'sustainable', phonetic: '/səˈsteɪnəbl/', meanings: ['可持续的'], example: 'We need sustainable development.', isCore: true },
         { word: 'biodiversity', phonetic: '/ˌbaɪəʊdaɪˈvɜːsəti/', meanings: ['生物多样性'], example: 'Biodiversity is crucial for ecosystem health.', isCore: true },
         { word: 'mitigate', phonetic: '/ˈmɪtɪɡeɪt/', meanings: ['减轻', '缓和'], example: 'We must mitigate the effects of climate change.', isCore: true }
@@ -2813,16 +2812,36 @@
         const response = await fetch('words.json');
         if (response.ok) {
           const loadedWords = await response.json();
-          console.log('Loaded words from words.json:', { cet4: loadedWords.cet4?.length, cet6: loadedWords.cet6?.length, kaoyan: loadedWords.kaoyan?.length, toefl: loadedWords.toefl?.length });
+          console.log('Loaded words from words.json:', { cet4: loadedWords.cet4?.length, cet6: loadedWords.cet6?.length, kaoyan: loadedWords.kaoyan?.length, touya: (loadedWords.toefl?.length || 0) + (loadedWords.ielts?.length || 0) });
           // Merge loaded words with existing WORDS
-          Object.keys(loadedWords).forEach(exam => {
-            if (WORDS[exam]) {
-              // Merge: add new words, don't duplicate
+          // Merge TOEFL and IELTS into 托雅 (touya)
+          if (loadedWords.toefl || loadedWords.ielts) {
+            const touyaWords = [...(loadedWords.toefl || []), ...(loadedWords.ielts || [])];
+            const existingWords = new Set((WORDS.touya || []).map(w => w.word));
+            let addedCount = 0;
+            touyaWords.forEach(w => {
+              if (!existingWords.has(w.word)) {
+                if (!WORDS.touya) WORDS.touya = [];
+                WORDS.touya.push({
+                  word: w.word,
+                  phonetic: w.phonetic || '',
+                  meanings: w.meaning ? [w.meaning] : [],
+                  example: '',
+                  isCore: true
+                });
+                addedCount++;
+              }
+            });
+            console.log(`Merged touya: added ${addedCount} words, total now ${WORDS.touya?.length || 0}`);
+          }
+
+          // Merge other exams
+          ['cet4', 'cet6', 'kaoyan'].forEach(exam => {
+            if (loadedWords[exam] && WORDS[exam]) {
               const existingWords = new Set(WORDS[exam].map(w => w.word));
               let addedCount = 0;
               loadedWords[exam].forEach(w => {
                 if (!existingWords.has(w.word)) {
-                  // Convert mahavivo format to our format
                   WORDS[exam].push({
                     word: w.word,
                     phonetic: w.phonetic || '',
@@ -2834,8 +2853,6 @@
                 }
               });
               console.log(`Merged ${exam}: added ${addedCount} words, total now ${WORDS[exam].length}`);
-            } else {
-              console.log(`Exam ${exam} not found in WORDS`);
             }
           });
           vocabularyLoaded = true;
@@ -3277,7 +3294,7 @@
     }
 
     function switchExam() {
-      const examNames = { cet4: 'CET-4', cet6: 'CET-6', kaoyan: '考研', toefl: '托福', ielts: '雅思' };
+      const examNames = { cet4: 'CET-4', cet6: 'CET-6', kaoyan: '考研', touya: '托雅' };
       let html = '<div style="padding: 16px;"><div class="section-title" style="margin-bottom: 16px;">选择目标考试</div>';
       html += '<div class="exam-grid">';
       EXAMS.forEach(exam => {
@@ -3781,7 +3798,7 @@
 
     function showAllWords() {
       const words = WORDS[currentExam] || WORDS.cet4;
-      const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', toefl: '托福', ielts: '雅思' };
+      const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', touya: '托雅' };
 
       let html = `<div class="detail-header">
         <button class="back-btn" onclick="closeModal()">←</button>
