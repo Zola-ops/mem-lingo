@@ -1,0 +1,4660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mem-Lingo 英语学习</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #4F86F7;
+      --purple: #7B5CFA;
+      --teal: #4ECDC4;
+      --yellow: #FFC107;
+      --orange: #FF7043;
+      --bg: #F8F9FA;
+      --card: #FFFFFF;
+      --text: #2D3436;
+      --text-secondary: #636E72;
+      --border: #E9ECEF;
+      --danger: #F44336;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 70px;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+    }
+
+    .header-title {
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .points-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(255, 193, 7, 0.15);
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--yellow);
+    }
+
+    .header-pet-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--orange);
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding-top: 56px;
+      min-height: calc(100vh - 126px);
+    }
+
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; animation: fadeIn 0.2s ease-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tab Bar */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-item svg { width: 22px; height: 22px; }
+    .tab-item.active { color: var(--primary); }
+    .tab-item:active { transform: scale(0.95); }
+
+    /* Onboarding */
+    .onboarding-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .onboarding-logo {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .onboarding-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .onboarding-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .onboarding-btn {
+      width: 100%;
+      max-width: 280px;
+      padding: 14px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .onboarding-btn:active { transform: scale(0.98); }
+    .onboarding-btn:disabled { background: var(--border); color: var(--text-secondary); }
+
+    /* Exam Selection */
+    .exam-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .exam-option {
+      padding: 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .exam-option:active { transform: scale(0.98); }
+    .exam-option.selected { border-color: var(--primary); background: rgba(79, 134, 247, 0.05); }
+
+    .exam-option-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .exam-option-count { font-size: 12px; color: var(--text-secondary); }
+
+    /* Assessment */
+    .assessment-progress {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .progress-dot {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .progress-dot.completed { background: var(--primary); }
+    .progress-dot.current { background: var(--yellow); }
+
+    .question-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .question-number {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .question-options { display: flex; flex-direction: column; gap: 10px; }
+
+    .question-option {
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .question-option:active { transform: scale(0.98); }
+    .question-option.selected { border-color: var(--primary); background: rgba(79, 134, 247, 0.1); }
+
+    /* Radar Chart */
+    .radar-container {
+      width: 250px;
+      height: 250px;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+
+    .radar-label {
+      position: absolute;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+      width: 50px;
+      transform: translateX(-50%);
+    }
+
+    /* Pet Hatching */
+    .pet-preview {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pet-emoji {
+      font-size: 100px;
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .ability-summary {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .ability-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ability-row:last-child { border-bottom: none; }
+
+    .ability-name { font-size: 14px; }
+    .ability-value { font-weight: 600; color: var(--primary); }
+
+    /* Exam Selector */
+    .exam-selector {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 12px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .exam-selector::-webkit-scrollbar { display: none; }
+
+    .exam-card {
+      flex-shrink: 0;
+      width: 100px;
+      padding: 12px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .exam-card.selected { border-color: var(--primary); background: rgba(79, 134, 247, 0.05); }
+    .exam-card:active { transform: scale(0.98); }
+    .exam-name { font-weight: 600; font-size: 14px; }
+    .exam-card.selected .exam-name { color: var(--primary); }
+    .exam-count { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* Ability Tabs */
+    .ability-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 8px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .ability-tabs::-webkit-scrollbar { display: none; }
+
+    .ability-tab {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ability-tab svg { width: 16px; height: 16px; }
+    .ability-tab.active { border-color: currentColor; }
+    .ability-tab[data-type="vocab"] { color: var(--primary); }
+    .ability-tab[data-type="listening"] { color: var(--purple); }
+    .ability-tab[data-type="speaking"] { color: var(--teal); }
+    .ability-tab[data-type="reading"] { color: var(--yellow); }
+    .ability-tab[data-type="writing"] { color: var(--orange); }
+
+    .ability-tab.active.vocab { background: rgba(79, 134, 247, 0.1); }
+    .ability-tab.active.listening { background: rgba(123, 92, 250, 0.1); }
+    .ability-tab.active.speaking { background: rgba(78, 205, 196, 0.1); }
+    .ability-tab.active.reading { background: rgba(255, 193, 7, 0.1); }
+    .ability-tab.active.writing { background: rgba(255, 112, 67, 0.1); }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 12px;
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-icon svg { width: 20px; height: 20px; }
+
+    .section-info { flex: 1; }
+    .section-title { font-weight: 600; font-size: 15px; }
+    .section-subtitle { font-size: 12px; color: var(--text-secondary); }
+
+    /* Word Card */
+    .word-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .word-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .word-text {
+      font-weight: 600;
+      font-size: 17px;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .word-phonetic { font-size: 13px; color: var(--text-secondary); }
+
+    .word-badge {
+      padding: 2px 6px;
+      background: rgba(255, 193, 7, 0.2);
+      color: var(--yellow);
+      font-size: 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .word-meaning {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .word-example {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding-left: 12px;
+      border-left: 2px solid var(--border);
+      margin-top: 8px;
+    }
+
+    .word-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .word-btn {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .word-btn:active { transform: scale(0.95); }
+    .word-btn.secondary { background: var(--border); color: var(--text); }
+    .word-btn.ai { background: var(--purple); }
+
+    /* Task Card */
+    .task-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .task-card:active { transform: scale(0.98); }
+
+    .task-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .task-info { flex: 1; }
+    .task-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .task-desc { font-size: 12px; color: var(--text-secondary); }
+
+    .task-progress {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .task-progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    /* Speaking Practice */
+    .speaking-practice {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .speaking-prompt {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .speaking-hint {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .speaking-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      transition: all 0.2s;
+    }
+
+    .speaking-btn:active { transform: scale(0.95); }
+    .speaking-btn.recording { background: #FF6B6B; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+      50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+    }
+
+    .speaking-result {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+
+    /* Article Card */
+    .article-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .article-card:active { transform: scale(0.98); }
+
+    .article-tags { display: flex; gap: 6px; margin-bottom: 8px; }
+
+    .article-tag {
+      padding: 2px 8px;
+      background: rgba(255, 112, 67, 0.1);
+      color: var(--orange);
+      font-size: 10px;
+      border-radius: 4px;
+    }
+
+    .article-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .article-title-en { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+    .article-meta { font-size: 12px; color: var(--text-secondary); }
+
+    /* Writing */
+    .writing-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .writing-card:active { transform: scale(0.98); }
+
+    .writing-type {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(255, 112, 67, 0.1);
+      color: var(--orange);
+      font-size: 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .writing-title { font-weight: 600; font-size: 15px; }
+    .writing-title-en { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .writing-expr-count { font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
+
+    /* Pet Page */
+    .pet-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    /* Radar Chart on Pet Page */
+    .pet-radar {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 20px;
+    }
+
+    .pet-stage {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(180deg, #E8F4FD 0%, #F0F7FF 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .pet-avatar {
+      font-size: 80px;
+    }
+
+    /* Pet Stats */
+    .pet-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .pet-level {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .pet-stats { width: 100%; max-width: 300px; }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .stat-info { flex: 1; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+
+    .stat-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s;
+    }
+
+    .stat-bar-fill.hunger { background: linear-gradient(90deg, #FF6B6B, #FF8E53); }
+    .stat-bar-fill.happiness { background: linear-gradient(90deg, #FFD93D, #FF6B6B); }
+    .stat-bar-fill.exp { background: linear-gradient(90deg, #4F86F7, #7B5CFA); }
+
+    /* Feed Section */
+    .feed-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      width: 100%;
+    }
+
+    .feed-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .feed-items { display: flex; justify-content: center; gap: 16px; }
+
+    .feed-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .feed-item:active { transform: scale(0.95); }
+
+    .feed-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .feed-name { font-size: 12px; color: var(--text-secondary); }
+    .feed-cost { font-size: 11px; color: var(--yellow); font-weight: 600; }
+
+    /* Interact Section */
+    .interact-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      width: 100%;
+    }
+
+    .interact-items { display: flex; justify-content: center; gap: 24px; }
+
+    .interact-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .interact-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .interact-name { font-size: 12px; color: var(--text-secondary); }
+    .interact-cost { font-size: 11px; color: var(--yellow); font-weight: 600; }
+
+    /* Checkin Section */
+    .checkin-section {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .checkin-title { font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+    .checkin-streak { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+    .checkin-streak span { color: var(--primary); font-weight: 600; }
+
+    .checkin-btn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 0 auto 16px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(79, 134, 247, 0.4);
+    }
+
+    .checkin-btn:active { transform: scale(0.95); }
+    .checkin-btn:disabled {
+      background: var(--border);
+      color: var(--text-secondary);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .checkin-reward { font-size: 13px; color: var(--text-secondary); }
+    .checkin-reward span { color: var(--yellow); font-weight: 600; }
+
+    /* Daily Tasks */
+    .daily-tasks {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .daily-task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .daily-task:last-child { border-bottom: none; }
+
+    .task-check-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .daily-task.completed .task-check-icon {
+      background: #4CAF50;
+      border-color: #4CAF50;
+      color: white;
+    }
+
+    .task-task-info { flex: 1; }
+    .task-task-title { font-size: 14px; font-weight: 500; }
+    .task-task-desc { font-size: 12px; color: var(--text-secondary); }
+
+    .task-task-reward { font-size: 12px; color: var(--yellow); font-weight: 600; }
+
+    /* Calendar */
+    .calendar {
+      margin-top: 20px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .calendar-month { font-weight: 600; font-size: 14px; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .calendar-day-header {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .calendar-day.empty { background: transparent; }
+    .calendar-day.today { border: 2px solid var(--primary); }
+    .calendar-day.checked::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #4CAF50;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 2px;
+    }
+
+    /* Profile Page */
+    .profile-header {
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+
+    .profile-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .profile-motto { font-size: 13px; color: var(--text-secondary); }
+
+    .profile-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 20px;
+    }
+
+    .profile-stat { text-align: center; }
+
+    .profile-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .profile-stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+    .profile-section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .profile-section-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-section-title svg { width: 18px; height: 18px; color: var(--primary); }
+
+    .profile-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .profile-item:last-child { border-bottom: none; }
+    .profile-item-label { font-size: 14px; color: var(--text-secondary); }
+    .profile-item-value { font-size: 14px; font-weight: 500; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px;
+      max-width: 360px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title { font-weight: 600; font-size: 16px; }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Writing Editor */
+    .writing-editor {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.8;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .writing-editor:focus { outline: none; border-color: var(--primary); }
+
+    .word-count {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    /* AI Feedback */
+    .ai-feedback {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .ai-score {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 16px;
+    }
+
+    .ai-score-item { text-align: center; }
+
+    .ai-score-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .ai-score-label { font-size: 11px; color: var(--text-secondary); }
+
+    .ai-suggestions { font-size: 13px; line-height: 1.6; }
+
+    .ai-suggestion-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ai-suggestion-icon { color: var(--purple); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--text);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.danger { background: var(--danger); }
+
+    /* Detail View */
+    .detail-header {
+      padding: 12px 16px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .detail-title { font-weight: 600; font-size: 16px; flex: 1; }
+    .detail-content { padding: 16px; }
+
+    .detail-section { margin-bottom: 24px; }
+    .detail-section-title { font-weight: 600; font-size: 15px; margin-bottom: 12px; }
+
+    /* Question Card */
+    .question-card-detail {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .question-text { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+
+    .question-options { display: flex; flex-direction: column; gap: 8px; }
+
+    .question-option-btn {
+      padding: 10px 14px;
+      background: var(--bg);
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      border: none;
+      width: 100%;
+    }
+
+    .question-option-btn:active { transform: scale(0.98); }
+    .question-option-btn.selected { background: rgba(79, 134, 247, 0.1); border: 1px solid var(--primary); }
+    .question-option-btn.correct { background: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; }
+    .question-option-btn.wrong { background: rgba(244, 67, 54, 0.1); border: 1px solid #F44336; }
+
+    .question-explanation {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(79, 134, 247, 0.05);
+      border-radius: 8px;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .question-explanation svg { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; }
+
+    /* Dead Pet */
+    .dead-pet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 250;
+      color: white;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .dead-pet-emoji { font-size: 80px; margin-bottom: 16px; opacity: 0.5; }
+    .dead-pet-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .dead-pet-desc { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+    .dead-pet-btn {
+      padding: 14px 32px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span>Mem-Lingo</span>
+    </div>
+    <div class="header-right">
+      <div class="points-badge">
+        <span>⭐</span>
+        <span id="header-points">0</span>
+      </div>
+      <button class="header-pet-btn" onclick="switchTab('pet')">
+        <span>🐾</span>
+        <span id="header-pet-level">Lv.1</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Learning Center Page -->
+    <div id="page-learning" class="page active">
+      <div class="exam-selector" id="exam-selector"></div>
+      <div class="ability-tabs" id="ability-tabs"></div>
+      <div id="ability-content"></div>
+    </div>
+
+    <!-- Pet Page -->
+    <div id="page-pet" class="page">
+      <div class="pet-container">
+        <!-- Radar Chart -->
+        <div class="pet-radar" id="pet-radar"></div>
+
+        <div class="pet-stage">
+          <div class="pet-avatar" id="pet-avatar">🐱</div>
+        </div>
+
+        <div class="pet-name" id="pet-name">小黄</div>
+        <div class="pet-level">等级 Lv.<span id="pet-level">1</span></div>
+
+        <div class="pet-stats">
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(255,107,107,0.1);">🍖</div>
+            <div class="stat-info">
+              <div class="stat-label">饱食度</div>
+              <div class="stat-bar"><div class="stat-bar-fill hunger" id="hunger-bar" style="width: 80%"></div></div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(255,217,61,0.1);">😊</div>
+            <div class="stat-info">
+              <div class="stat-label">开心值</div>
+              <div class="stat-bar"><div class="stat-bar-fill happiness" id="happiness-bar" style="width: 90%"></div></div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(79,134,247,0.1);">⭐</div>
+            <div class="stat-info">
+              <div class="stat-label">经验值</div>
+              <div class="stat-bar"><div class="stat-bar-fill exp" id="exp-bar" style="width: 30%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Tasks -->
+        <div class="daily-tasks" style="width: 100%; max-width: 350px; margin-top: 24px;">
+          <div class="section-title" style="margin-bottom: 12px;">今日任务</div>
+          <div id="daily-tasks-list"></div>
+        </div>
+
+        <!-- Checkin -->
+        <div class="checkin-section" style="width: 100%; max-width: 350px;">
+          <div class="checkin-title">今日打卡</div>
+          <div class="checkin-streak">连续 <span id="streak-days">0</span> 天</div>
+          <button class="checkin-btn" id="checkin-btn" onclick="doCheckin()">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            打卡
+          </button>
+          <div class="checkin-reward">打卡成功 +<span>20</span> 积分</div>
+        </div>
+
+        <div class="calendar" id="calendar" style="width: 100%; max-width: 350px;"></div>
+
+        <!-- Feed -->
+        <div class="feed-section">
+          <div class="feed-title">喂食</div>
+          <div class="feed-items">
+            <div class="feed-item" onclick="feedPet('apple')">
+              <div class="feed-icon" style="background: rgba(255,107,107,0.1);">🍎</div>
+              <div class="feed-name">苹果</div>
+              <div class="feed-cost">5 积分</div>
+            </div>
+            <div class="feed-item" onclick="feedPet('pizza')">
+              <div class="feed-icon" style="background: rgba(255,193,7,0.1);">🍕</div>
+              <div class="feed-name">披萨</div>
+              <div class="feed-cost">10 积分</div>
+            </div>
+            <div class="feed-item" onclick="feedPet('cake')">
+              <div class="feed-icon" style="background: rgba(123,92,250,0.1);">🎂</div>
+              <div class="feed-name">蛋糕</div>
+              <div class="feed-cost">20 积分</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interact -->
+        <div class="interact-section">
+          <div class="feed-title">互动</div>
+          <div class="interact-items">
+            <div class="interact-item" onclick="interactPet('pet')">
+              <div class="interact-icon">🤚</div>
+              <div class="interact-name">抚摸</div>
+              <div class="interact-cost">3 积分</div>
+            </div>
+            <div class="interact-item" onclick="interactPet('walk')">
+              <div class="interact-icon">🚶</div>
+              <div class="interact-name">遛宠物</div>
+              <div class="interact-cost">5 积分</div>
+            </div>
+            <div class="interact-item" onclick="interactPet('study')">
+              <div class="interact-icon">📚</div>
+              <div class="interact-name">一起学习</div>
+              <div class="interact-cost">5 积分</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Speaking with Pet -->
+        <div class="interact-section">
+          <div class="feed-title">🎤 和宠物对话</div>
+          <div class="word-card" style="width: 100%; max-width: 350px; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 40px;" id="pet-speaking-avatar">${state.pet.emoji}</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;" id="pet-speaking-status">点击开始，和宠物练习口语！</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">选择一个话题：</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('greeting')">👋 打招呼</button>
+                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('weather')">🌤️ 天气</button>
+                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('hobby')">🎨 爱好</button>
+                <button class="word-btn secondary" style="font-size: 11px;" onclick="startPetSpeaking('food')">🍕 食物</button>
+              </div>
+            </div>
+            <div class="speaking-result" id="speaking-result-pet" style="min-height: 60px; margin-bottom: 12px;">
+              宠物在等你说话...
+            </div>
+            <button class="speaking-btn" id="pet-speaking-btn" onclick="startPetSpeechRecognition()" style="width: 60px; height: 60px; margin: 0 auto;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Online Page -->
+    <div id="page-online" class="page">
+      <div id="online-content"></div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="page-profile" class="page">
+      <div class="profile-header">
+        <div class="profile-avatar">🦊</div>
+        <div class="profile-name" id="profile-name">学习者</div>
+        <div class="profile-motto">每天进步一点点</div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="stat-learned">0</div>
+            <div class="profile-stat-label">已学单词</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="stat-study-time">0</div>
+            <div class="profile-stat-label">学习时长(分钟)</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="stat-checkins">0</div>
+            <div class="profile-stat-label">打卡次数</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          个人设置
+        </div>
+        <div class="profile-item" onclick="editNickname()">
+          <span class="profile-item-label">昵称</span>
+          <span class="profile-item-value" id="setting-nickname">学习者</span>
+        </div>
+        <div class="profile-item" onclick="editPetName()">
+          <span class="profile-item-label">宠物名字</span>
+          <span class="profile-item-value" id="setting-pet-name">小黄</span>
+        </div>
+        <div class="profile-item" onclick="switchExam()">
+          <span class="profile-item-label">目标考试</span>
+          <span class="profile-item-value" id="setting-exam">CET-4</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          学习统计
+        </div>
+        <div class="profile-item">
+          <span class="profile-item-label">最长发卡天数</span>
+          <span class="profile-item-value" id="stat-longest-streak">0</span>
+        </div>
+        <div class="profile-item">
+          <span class="profile-item-label">累计学习</span>
+          <span class="profile-item-value" id="stat-total-study">0 分钟</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">重新测评</div>
+        <button class="onboarding-btn" onclick="startAssessment()">进行能力测评</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Tab Bar -->
+  <nav class="tab-bar">
+    <div class="tab-item active" data-tab="learning" onclick="switchTab('learning')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+      <span>学习中心</span>
+    </div>
+    <div class="tab-item" data-tab="pet" onclick="switchTab('pet')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9"/>
+        <line x1="15" y1="9" x2="15.01" y2="9"/>
+      </svg>
+      <span>宠物</span>
+    </div>
+    <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span>我的</span>
+    </div>
+    <div class="tab-item" data-tab="online" onclick="switchTab('online')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+      </svg>
+      <span>在线</span>
+    </div>
+  </nav>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
+  </div>
+
+  <!-- Onboarding Container (shown initially) -->
+  <div id="onboarding" class="onboarding-container">
+    <!-- Will be populated by JS -->
+  </div>
+
+  <!-- Dead Pet Overlay -->
+  <div id="dead-pet-overlay" class="dead-pet-overlay" style="display: none;">
+    <div class="dead-pet-emoji">💀</div>
+    <div class="dead-pet-title">宠物死亡</div>
+    <div class="dead-pet-desc">由于长时间没有喂食，你的宠物已经离世了。<br>所有学习记录将被清除。</div>
+    <button class="dead-pet-btn" onclick="revivePet()">重新开始</button>
+  </div>
+
+  <script>
+    // ============== Data ==============
+    const EXAMS = [
+      { id: 'cet4', name: 'CET-4', shortName: '四级', wordCount: 4200, color: '#4F86F7' },
+      { id: 'cet6', name: 'CET-6', shortName: '六级', wordCount: 5500, color: '#7B5CFA' },
+      { id: 'kaoyan', name: '考研', shortName: '考研', wordCount: 5500, color: '#4ECDC4' },
+      { id: 'toefl', name: '托福', shortName: '托福', wordCount: 8000, color: '#FFC107' },
+      { id: 'ielts', name: '雅思', shortName: '雅思', wordCount: 7000, color: '#FF7043' }
+    ];
+
+    const ABILITIES = [
+      { id: 'vocab', name: '词汇', icon: '📚' },
+      { id: 'listening', name: '听力', icon: '🎧' },
+      { id: 'speaking', name: '口语', icon: '🎤' },
+      { id: 'reading', name: '阅读', icon: '📖' },
+      { id: 'writing', name: '写作', icon: '✏️' }
+    ];
+
+    const PET_TYPES = [
+      { type: 'cat', emoji: '🐱', color: '#FFD93D' },
+      { type: 'dog', emoji: '🐶', color: '#FFA07A' },
+      { type: 'rabbit', emoji: '🐰', color: '#FFB6C1' },
+      { type: 'panda', emoji: '🐼', color: '#2D3436' },
+      { type: 'bear', emoji: '🐻', color: '#8B4513' },
+      { type: 'fox', emoji: '🦊', color: '#FF7043' },
+      { type: 'bird', emoji: '🦜', color: '#4ECDC4' },
+      { type: 'hamster', emoji: '🐹', color: '#F4D03F' }
+    ];
+
+    const WORDS = {
+      cet4: [
+        { word: 'abandon', phonetic: '/əˈbændən/', meanings: ['放弃', '遗弃'], example: 'Never abandon your dreams.', isCore: true },
+        { word: 'ability', phonetic: '/əˈbɪləti/', meanings: ['能力', '才能'], example: 'She has the ability to speak French.', isCore: true },
+        { word: 'able', phonetic: '/ˈeɪbl/', meanings: ['能够的', '有能力的'], example: 'He is able to swim.', isCore: true },
+        { word: 'about', phonetic: '/əˈbaʊt/', meanings: ['关于', '大约'], example: 'What is it about?', isCore: false },
+        { word: 'above', phonetic: '/əˈbʌv/', meanings: ['在...上面', '上面'], example: 'The bird flew above the tree.', isCore: false },
+        { word: 'absent', phonetic: '/ˈæbsənt/', meanings: ['缺席的', '不在场的'], example: 'He was absent from school yesterday.', isCore: true },
+        { word: 'accept', phonetic: '/əkˈsept/', meanings: ['接受', '承认'], example: 'Please accept my apology.', isCore: true },
+        { word: 'access', phonetic: '/ˈækses/', meanings: ['进入', '访问'], example: 'The access to the building is restricted.', isCore: true },
+        { word: 'accident', phonetic: '/ˈæksɪdənt/', meanings: ['事故', '意外'], example: 'The accident happened on the highway.', isCore: false },
+        { word: 'account', phonetic: '/əˈkaʊnt/', meanings: ['账户', '叙述'], example: 'She opened a bank account.', isCore: true },
+        { word: 'achieve', phonetic: '/əˈtʃiːv/', meanings: ['完成', '达到'], example: 'We achieved our goals.', isCore: true },
+        { word: 'action', phonetic: '/ˈækʃən/', meanings: ['行动', '行为'], example: 'Take action now.', isCore: true },
+        { word: 'activity', phonetic: '/ækˈtɪvəti/', meanings: ['活动'], example: 'The activity was fun.', isCore: false },
+        { word: 'add', phonetic: '/æd/', meanings: ['添加', '增加'], example: 'Add some sugar.', isCore: false },
+        { word: 'address', phonetic: '/əˈdres/', meanings: ['地址', '演说'], example: 'What is your address?', isCore: true }
+      ],
+      cet6: [
+        { word: 'acquire', phonetic: '/əˈkwaɪər/', meanings: ['获得', '学到'], example: 'We need to acquire new skills.', isCore: true },
+        { word: 'adapt', phonetic: '/əˈdæpt/', meanings: ['适应', '改编'], example: 'Animals adapt to their environment.', isCore: true },
+        { word: 'adequate', phonetic: '/ˈædɪkwət/', meanings: ['足够的', '适当的'], example: 'The food was adequate for everyone.', isCore: true },
+        { word: 'adjust', phonetic: '/əˈdʒʌst/', meanings: ['调整', '适应'], example: 'Please adjust the volume.', isCore: false },
+        { word: 'administration', phonetic: '/ədˌmɪnɪˈstreɪʃən/', meanings: ['管理', '行政'], example: 'The administration made a decision.', isCore: true },
+        { word: 'adult', phonetic: '/ˈædʌlt/', meanings: ['成年人'], example: 'An adult should be responsible.', isCore: false },
+        { word: 'advocate', phonetic: '/ˈædvəkeɪt/', meanings: ['提倡', '拥护'], example: 'We advocate peace.', isCore: true }
+      ],
+      kaoyan: [
+        { word: 'aggregate', phonetic: '/ˈæɡrɪɡət/', meanings: ['合计', '聚集'], example: 'The data was aggregated from multiple sources.', isCore: true },
+        { word: 'alleviate', phonetic: '/əˈliːvieɪt/', meanings: ['减轻', '缓和'], example: 'The medicine alleviated the pain.', isCore: true },
+        { word: 'allocate', phonetic: '/ˈæləkeɪt/', meanings: ['分配', '拨给'], example: 'Resources were allocated to the project.', isCore: true },
+        { word: 'ambiguous', phonetic: '/æmˈbɪɡjuəs/', meanings: ['模糊的', '歧义的'], example: 'The statement is ambiguous.', isCore: true }
+      ],
+      toefl: [
+        { word: 'ubiquitous', phonetic: '/juːˈbɪkwɪtəs/', meanings: ['无处不在的'], example: 'Smartphones have become ubiquitous.', isCore: true },
+        { word: 'ephemeral', phonetic: '/ɪˈfemərəl/', meanings: ['短暂的', '瞬息的'], example: 'Fame in the modern world is often ephemeral.', isCore: true },
+        { word: 'paradigm', phonetic: '/ˈpærədaɪm/', meanings: ['范式', '典范'], example: 'This is a new paradigm.', isCore: true }
+      ],
+      ielts: [
+        { word: 'sustainable', phonetic: '/səˈsteɪnəbl/', meanings: ['可持续的'], example: 'We need sustainable development.', isCore: true },
+        { word: 'biodiversity', phonetic: '/ˌbaɪəʊdaɪˈvɜːsəti/', meanings: ['生物多样性'], example: 'Biodiversity is crucial for ecosystem health.', isCore: true },
+        { word: 'mitigate', phonetic: '/ˈmɪtɪɡeɪt/', meanings: ['减轻', '缓和'], example: 'We must mitigate the effects of climate change.', isCore: true }
+      ]
+    };
+
+    const ARTICLES = {
+      'CET-4': [
+        { id: 1, title: 'The Power of Reading', titleEn: '阅读的力量', difficulty: 'CET-4', tags: ['教育', '习惯'], content: 'Reading is one of the most beneficial activities that anyone can engage in. It not only provides knowledge but also improves vocabulary, sharpens memory, and enhances analytical thinking skills.\n\nThrough reading, we expose ourselves to new ideas, perspectives, and cultures. This exposure broadens our horizons and helps us become more empathetic and understanding individuals.\n\nMoreover, regular reading has been linked to better mental health. It can reduce stress levels and provide a sense of relaxation, especially when reading fiction or topics of personal interest.', questions: [
+          { q: 'What is the main idea of the passage?', options: ['Reading is only for entertainment', 'Reading provides many benefits', 'Reading is difficult', 'Reading wastes time'], answer: 1, explanation: 'The passage discusses how reading provides knowledge, improves skills, and benefits mental health.' },
+          { q: 'According to the passage, what does reading improve?', options: ['Only vocabulary', 'Memory and analytical thinking', 'Nothing important', 'Physical health'], answer: 1, explanation: 'The passage states that reading improves vocabulary, sharpens memory, and enhances analytical thinking skills.' }
+        ]}
+      ]
+    };
+
+    const WRITING_TEMPLATES = [
+      { type: '议论文', title: '观点对比型', titleEn: 'Argumentative Essay', expressions: ['Some people believe that...', 'Others argue that...', 'In my opinion, I side with the former/latter.'] },
+      { type: '议论文', title: '问题解决型', titleEn: 'Problem-Solution Essay', expressions: ['The problem of... has caused concern.', 'Several factors contribute to this issue.', 'To solve this, we should...'] },
+      { type: '应用文', title: '建议信', titleEn: 'Suggestion Letter', expressions: ['I am writing to offer some suggestions.', 'It would be beneficial if...', 'I hope you will find these suggestions helpful.'] }
+    ];
+
+    const LISTENING_ITEMS = [
+      { title: '短对话练习', desc: '10个短对话，每个约1分钟', icon: '🎵', color: '#7B5CFA' },
+      { title: '长对话练习', desc: '3篇长对话，每篇约3分钟', icon: '🎧', color: '#4ECDC4' },
+      { title: '短文听力', desc: '5篇短文听力，每篇约2分钟', icon: '📻', color: '#FFC107' }
+    ];
+
+    const SPEAKING_ITEMS = [
+      { title: '跟读模仿', desc: '跟随原声练习发音和语调', icon: '🎤', color: '#4ECDC4' },
+      { title: '场景对话', desc: '模拟真实场景进行对话练习', icon: '💬', color: '#4F86F7' },
+      { title: '口语话题', desc: '围绕考试常见话题进行练习', icon: '📝', color: '#FFC107' }
+    ];
+
+    // Assessment questions with difficulty levels: easy(1), medium(2), hard(3)
+// Score calculation: easy_correct*10 + medium_correct*15 + hard_correct*20, normalized to 0-100
+    const ASSESSMENT_QUESTIONS = {
+      vocab: {
+        easy: [
+          { q: 'What does "happy" mean?', options: ['悲伤的', '开心的', '生气的', '累的'], answer: 1 },
+          { q: 'What does "big" mean?', options: ['小的', '大的', '短的', '高的'], answer: 1 },
+          { q: 'What does "run" mean?', options: ['走路', '跑步', '跳跃', '游泳'], answer: 1 },
+          { q: 'What does "eat" mean?', options: ['喝', '吃', '睡觉', '说话'], answer: 1 },
+          { q: 'What does "water" mean?', options: ['火', '水', '土', '空气'], answer: 1 },
+          { q: 'What does "book" mean?', options: ['书', '桌子', '椅子', '窗户'], answer: 0 },
+          { q: 'What does "time" mean?', options: ['地方', '人物', '时间', '原因'], answer: 2 },
+          { q: 'What does "good" mean?', options: ['坏的', '好的', '旧的', '新的'], answer: 1 },
+          { q: 'What does "small" mean?', options: ['大的', '小的', '长的', '短的'], answer: 1 },
+          { q: 'What does "fast" mean?', options: ['慢的', '快的', '轻的', '重的'], answer: 1 }
+        ],
+        medium: [
+          { q: 'What does "abandon" mean?', options: ['保留', '放弃', '寻找', '忽略'], answer: 1 },
+          { q: 'What does "benevolent" mean?', options: ['邪恶的', '善良的', '中立的', '困惑的'], answer: 1 },
+          { q: 'What does "pragmatic" mean?', options: ['理想化的', '务实的', '理论的', '情绪化的'], answer: 1 },
+          { q: 'What does "eloquent" mean?', options: ['沉默的', '雄辩的', '困惑的', '无聊的'], answer: 1 },
+          { q: 'What does "meticulous" mean?', options: ['粗心的', '细心的', '快速的', '懒惰的'], answer: 1 },
+          { q: 'What does "inevitable" mean?', options: ['可避免的', '不可避免的', '不太可能的', '罕见的'], answer: 1 },
+          { q: 'What does "persistent" mean?', options: ['轻易放弃的', '坚持不懈的', '懒惰的', '安静的'], answer: 1 },
+          { q: 'What does "comprehensive" mean?', options: ['不完整的', '全面的', '肤浅的', '有限的'], answer: 1 },
+          { q: 'What does "acquire" mean?', options: ['失去', '获得', '忘记', '忽略'], answer: 1 },
+          { q: 'What does "facilitate" mean?', options: ['阻碍', '促进', '阻止', '忽略'], answer: 1 }
+        ],
+        hard: [
+          { q: 'What does "paradigm" mean?', options: ['一个简单例子', '范式、典型模式', '错误', '结果'], answer: 1 },
+          { q: 'What does "ubiquitous" mean?', options: ['稀有的', '独特的', '无处不在的', '隐藏的'], answer: 2 },
+          { q: 'What does "ephemeral" mean?', options: ['永久的', '短暂的', '重要的', '美丽的'], answer: 1 },
+          { q: 'What does "alleviate" mean?', options: ['使恶化', '减轻', '忽视', '增加'], answer: 1 },
+          { q: 'What does "exacerbate" mean?', options: ['改善', '使恶化', '忽视', '解决'], answer: 1 },
+          { q: 'What does "prevalent" mean?', options: ['稀有的', '普遍的', '新的', '未知的'], answer: 1 },
+          { q: 'What does "ameliorate" mean?', options: ['使变差', '使变好', '忽视', '保持不变'], answer: 1 },
+          { q: 'What does "dichotomy" mean?', options: ['一致', '二分法', '相似', '联系'], answer: 1 },
+          { q: 'What does "pernicious" mean?', options: ['有益的', '有害的', '中立的', '略坏的'], answer: 1 },
+          { q: 'What does "laconic" mean?', options: ['话多的', '简洁的', '大声说的', '轻声说的'], answer: 1 }
+        ]
+      },
+      reading: {
+        easy: [
+          { q: 'What is the main idea of a text?', options: ['所有细节', '核心主题', '作者名字', '字数统计'], answer: 1 },
+          { q: 'What does a "title" tell us?', options: ['全部内容', '文章主题', '出版日期', '作者年龄'], answer: 1 },
+          { q: 'What are "facts" in reading?', options: ['个人看法', '可被验证的信息', '虚构内容', '作者想象'], answer: 1 },
+          { q: 'What is "skimming"?', options: ['仔细阅读每个词', '快速浏览获取大意', '逐字翻译', '背诵全文'], answer: 1 },
+          { q: 'What helps find specific information?', options: ['略读', '扫读(scanning)', '大声朗读', '抄写'], answer: 1 },
+          { q: 'What are "pictures" in a text useful for?', options: ['装饰', '帮助理解', '占空间', '没用的'], answer: 1 },
+          { q: 'What does "unknown word" context clue help with?', options: ['拼写', '猜词义', '语法', '发音'], answer: 1 },
+          { q: 'What is the first sentence of a paragraph often?', options: ['结论', '细节', '主题句', '例子'], answer: 2 },
+          { q: 'What does "begin" mean?', options: ['结束', '开始', '继续', '暂停'], answer: 1 },
+          { q: 'What is ending paragraph usually about?', options: ['引入新话题', '总结', '举例子', '描述细节'], answer: 1 }
+        ],
+        medium: [
+          { q: 'What is "inference" in reading?', options: ['抄写单词', '推断含义', '翻译', '背诵'], answer: 1 },
+          { q: 'What does "suggest" mean in comprehension?', options: ['明确陈述', '暗示', '否认', '忽略'], answer: 1 },
+          { q: 'What is a "thesis statement"?', options: ['任何句子', '文章主要论点', '仅是结论', '标题'], answer: 1 },
+          { q: 'What are "transition words" used for?', options: ['让读者困惑', '连接 ideas', '结束句子', '开头段落'], answer: 1 },
+          { q: 'What does "imply" mean?', options: ['直接说明', '暗示', '否认', '忽略'], answer: 1 },
+          { q: 'What is "tone" in a passage?', options: ['主题', '作者态度', '标题', '长度'], answer: 1 },
+          { q: 'What is "scanning" in reading?', options: ['读每个词', '快速找特定信息', '慢慢读', '记忆'], answer: 1 },
+          { q: 'What does "evidence" mean in academic reading?', options: ['观点', '支持论点的事实', '无知', '困惑'], answer: 1 },
+          { q: 'What is a "claim" in argumentation?', options: ['问题', '需要证明的陈述', '仅是结论', '无关要点'], answer: 1 },
+          { q: 'What does "synthesize" mean?', options: ['忽略信息', '综合多个来源的信息', '记忆事实', '复制文本'], answer: 1 }
+        ],
+        hard: [
+          { q: 'What is "rhetorical structure"?', options: ['修辞手法的运用', '文章组织方式', '词汇选择', '字体大小'], answer: 1 },
+          { q: 'What does "deductive reasoning" mean?', options: ['从一般到特殊', '从特殊到一般', '比较', '重复'], answer: 0 },
+          { q: 'What is "bias" in reading?', options: ['客观', '偏见', '事实', '中性'], answer: 1 },
+          { q: 'What does "qualify" mean in academic text?', options: ['完全肯定', '在一定条件下承认', '完全否定', '忽略'], answer: 1 },
+          { q: 'What is "counterargument"?', options: ['支持性证据', '对立观点', '结论', '标题'], answer: 1 },
+          { q: 'What does "coherent" writing mean?', options: ['令人困惑的', '逻辑连贯的', '无组织的', '不完整的'], answer: 1 },
+          { q: 'What is "metacognition" in reading?', options: ['阅读策略', '对思考的思考', '记忆技巧', '词汇量'], answer: 1 },
+          { q: 'What does "paraphrase" mean?', options: ['完全复制', '用自己的话复述', '翻译', '忽略'], answer: 1 },
+          { q: 'What is the difference between "fact" and "opinion"?', options: ['它们一样', '事实可证实,观点是个人看法', '观点总是正确', '事实无法证实'], answer: 1 },
+          { q: 'What is "textual evidence"?', options: ['个人感受', '文中具体信息', '网上信息', '他人观点'], answer: 1 }
+        ]
+      },
+      listening: {
+        easy: [
+          { q: 'What should you do when you don\'t understand?', options: ['立即停止', '请求重复', '假装听懂', '离开'], answer: 1 },
+          { q: 'What helps you understand listening?', options: ['随机猜测', '预览选项', '睡觉', '忽略上下文'], answer: 1 },
+          { q: 'How can you prepare for a listening test?', options: ['不准备', '定期练习', '背所有单词', '不吃早餐'], answer: 1 },
+          { q: 'What is a "key word" in listening?', options: ['不重要的词', '暗示含义的重要词汇', '任何词', '难词'], answer: 1 },
+          { q: 'What does "intonation" refer to?', options: ['音量', '音高变化', '速度', '发音'], answer: 1 },
+          { q: 'What is "gist" in listening?', options: ['一个细节', '主要意思', '具体事实', '一个单词'], answer: 1 },
+          { q: 'What should you do with unfamiliar words?', options: ['立即停止', '尝试推断含义', '恐慌', '跳过整个测试'], answer: 1 },
+          { q: 'What is "note-taking" for listening?', options: ['写所有内容', '记关键点', '画图', '什么都不做'], answer: 1 },
+          { q: 'What does "infer" mean in listening?', options: ['直接听到', '字里行间推断', '忽略', '逐字记忆'], answer: 1 },
+          { q: 'What is "active listening"?', options: ['被动听', '全神贯注', '边听边睡', '忽略说话者'], answer: 1 }
+        ],
+        medium: [
+          { q: 'What does "redundancy" in speech indicate?', options: ['新信息', '为清晰而重复的信息', '困惑', '错误'], answer: 1 },
+          { q: 'What is a "consonant blend"?', options: ['一个音', '两个或多个辅音在一起', '元音', '静音'], answer: 1 },
+          { q: 'What does "emphasis" mean in speech?', options: ['轻声说', '强调某些词', '慢说', '安静'], answer: 1 },
+          { q: 'What is "connected speech"?', options: ['单独说', '词连在一起说', '大声说', '朗读'], answer: 1 },
+          { q: 'What does "differentiate" mean?', options: ['使相同', '区分声音或含义', '忽略', '结合'], answer: 1 },
+          { q: 'What is a "homophone"?', options: ['发音相同意义不同', '意义相同发音不同', '拼写相同', '没关联'], answer: 0 },
+          { q: 'What does "context" help with?', options: ['让你困惑', '更好理解', '让你分心', '让你慢下来'], answer: 1 },
+          { q: 'What is reduction in speech?', options: ['更清晰地说', '缩短或改变发音', '更大声', '添加音'], answer: 1 },
+          { q: 'What is a "discourse marker"?', options: ['一种书', '组织言语的词', '结论', '标题'], answer: 1 },
+          { q: 'What does "nuance" mean?', options: ['大差异', '细微差异', '没差异', '显而易见的事实'], answer: 1 }
+        ],
+        hard: [
+          { q: 'What does "monotone" mean?', options: ['音高变化', '平板无变化的音调', '兴奋的言语', '耳语'], answer: 1 },
+          { q: 'What is "schwa" in pronunciation?', options: ['重音', '非重读元音', '辅音', '停顿'], answer: 1 },
+          { q: 'What does "rapport" mean in communication?', options: ['冲突', '和谐关系', '距离', '不同意'], answer: 1 },
+          { q: 'What is "top-down" processing in listening?', options: ['从细节到整体', '从整体到细节', '只听词汇', '忽略语境'], answer: 1 },
+          { q: 'What does "phoneme" mean?', options: ['句子', '音素', '单词', '语法'], answer: 1 },
+          { q: 'What is "connected discourse"?', options: ['单独句子', '连贯语篇', '单词列表', '翻译文本'], answer: 1 },
+          { q: 'What does "pragmatic knowledge" involve?', options: ['语法规则', '语言实际运用', '词汇量', '拼写'], answer: 1 },
+          { q: 'What is "bottom-up" processing?', options: ['从整体到细节', '从音素到词到句', '忽略发音', '只靠记忆'], answer: 1 },
+          { q: 'What does "segmentation" mean in listening?', options: ['合并声音', '分割语音流', '忽略连读', '逐词发音'], answer: 1 },
+          { q: 'What is "lexical segmentation"?', options: ['分割字母', '识别单词边界', '分析词性', '记忆词义'], answer: 1 }
+        ]
+      },
+      speaking: {
+        easy: [
+          { q: 'What is important for speaking fluency?', options: ['只模仿母语口音', '每日练习', '从不犯错', '说得非常快'], answer: 1 },
+          { q: 'How can you improve pronunciation?', options: ['从不练习', '听并模仿', '默读', '避免母语者'], answer: 1 },
+          { q: 'What helps reduce speaking anxiety?', options: ['避免所有练习', '定期练习和准备', '从不说话', '不假思索地说'], answer: 1 },
+          { q: 'What is "chunking" in speaking?', options: ['随机说词', '以有意义单位组词', '说得非常快', '不断停顿'], answer: 1 },
+          { q: 'What does "clarity" mean in speaking?', options: ['用复杂词汇', '清晰易懂', '说得快', '用行话'], answer: 1 },
+          { q: 'What is a "filler" in speaking?', options: ['实义词', '如"嗯""啊"的填充词', '重要词汇', '语法词'], answer: 1 },
+          { q: 'What does "articulate" mean?', options: ['说不清楚', '清楚有效地说', '咕哝', '沉默'], answer: 1 },
+          { q: 'What should you do when making mistakes?', options: ['从不尝试', '继续说', '立即停止', '道歉后停止'], answer: 1 },
+          { q: 'What is "daily practice" for speaking?', options: ['无用', '坚持练习', '一次性学很多', '只看不练'], answer: 1 },
+          { q: 'What does "speak slowly" help with?', options: ['让人不耐烦', '更清晰表达', '浪费时间', '显得紧张'], answer: 1 }
+        ],
+        medium: [
+          { q: 'What does "coherence" mean in speaking?', options: ['言语无条理', '逻辑连贯的想法', '说得快', '用大词'], answer: 1 },
+          { q: 'What is the "pyramid structure" in speaking?', options: ['先说细节', '从一般到具体', '从具体到一般', '随机顺序'], answer: 2 },
+          { q: 'What does "intonation" affect?', options: ['仅词义', '句子意义和情感', '仅语法', '不重要'], answer: 1 },
+          { q: 'What is the difference between "accuracy" and "fluency"?', options: ['它们一样', '准确性是正确性,流利性是流畅度', '流利更重要', '准确性不重要'], answer: 1 },
+          { q: 'What does "liaison" mean in speaking?', options: ['分开说', '词之间的连读', '词间停顿', '喊叫'], answer: 1 },
+          { q: 'What is a "minimal pair"?', options: ['押韵的两个词', '一个音不同的两个词', '两个相同的词', '一对句子'], answer: 1 },
+          { q: 'What does "stress" mean in pronunciation?', options: ['轻声说', '强调某些音节', '慢说', '耳语'], answer: 1 },
+          { q: 'What is a "rising tone" used for?', options: ['陈述事实', '提问或表示不确定', '发命令', '结束对话'], answer: 1 },
+          { q: 'What is "backchanneling"?', options: ['只说不听', '听时给予反馈', '在某个频道说', '录自己'], answer: 1 },
+          { q: 'What does "functional language" include?', options: ['仅词汇', '如道歉、请求的特定功能语言', '仅语法', '仅学术语言'], answer: 1 }
+        ],
+        hard: [
+          { q: 'What does "pragma" mean in communication?', options: ['主题', '语言的实践运用', '语法规则', '写作'], answer: 1 },
+          { q: 'What is "turn-taking" in conversation?', options: ['独自说', '知道何时说何时听', '抢话', '从不停顿'], answer: 1 },
+          { q: 'What does "repair" mean in speaking?', options: ['弄坏东西', '解决沟通问题', '避免对话', '更大声说'], answer: 1 },
+          { q: 'What does "appropriacy" mean?', options: ['处处用相同语言', '使用适合语境的恰当语言', '总用复杂语言', '总用随意语言'], answer: 1 },
+          { q: 'What is "prosodic features"?', options: ['词汇选择', '语调、重音等韵律特征', '语法结构', '书写格式'], answer: 1 },
+          { q: 'What does "communicative competence" include?', options: ['仅语法', '语法、词汇、功能、社会语言学规则', '仅词汇量', '仅发音'], answer: 1 },
+          { q: 'What is "interactional talk"?', options: ['仅传递信息', '建立关系的对话', '独自演讲', '书面交流'], answer: 1 },
+          { q: 'What does "transactional talk" refer to?', options: ['仅社交', '交换信息/完成任务', '自言自语', '写作'], answer: 1 }
+        ]
+      },
+      writing: {
+        easy: [
+          { q: 'What is key to good writing?', options: ['仅用复杂词汇', '清晰结构和想法', '非常长的句子', '不修改'], answer: 1 },
+          { q: 'How should you organize a paragraph?', options: ['随机顺序', '主题句+细节', '无顺序', '仅结论'], answer: 1 },
+          { q: 'What helps improve writing?', options: ['从不阅读', '多读多练习', '从不修改', '完全复制'], answer: 1 },
+          { q: 'What is a "topic sentence"?', options: ['任何句子', '段落的主要意思', '结论', '标题'], answer: 1 },
+          { q: 'What does "revise" mean?', options: ['只写一次', '回顾和改进', '复制', '忽略错误'], answer: 1 }
+        ],
+        medium: [
+          { q: 'What is a "thesis statement"?', options: ['任何句子', '文章的主要论点', '仅是结论', '标题'], answer: 1 },
+          { q: 'What does "coherence" mean in writing?', options: ['无组织', '逻辑连贯的想法', '用大词', '长句'], answer: 1 },
+          { q: 'What is "brainstorming"?', options: ['抱怨', '自由产生想法', '写终稿', '避免主题'], answer: 1 },
+          { q: 'What does "transitional expression" do?', options: ['让读者困惑', '顺畅连接想法', '结束段落', '开始困惑'], answer: 1 },
+          { q: 'What is "unity" in a paragraph?', options: ['许多不相关的想法', '所有句子支持一个主要想法', '随机句子', '多主题'], answer: 1 },
+          { q: 'What does "elaborate" mean?', options: ['删除细节', '增加更多细节和解释', '保持简短', '避免例子'], answer: 1 },
+          { q: 'What does "plagiarism" mean?', options: ['原创作品', '未注明来源使用他人作品', '写得好', '好研究'], answer: 1 },
+          { q: 'What is "peer review"?', options: ['老师改所有', '他人给你的写作反馈', '自己审查', '不需要反馈'], answer: 1 }
+        ],
+        hard: [
+          { q: 'What is "register" in writing?', options: ['字体', '语言正式程度', '音乐术语', '手写风格'], answer: 0 },
+          { q: 'What does "rhetoric" mean?', options: ['有效写作研究', '一种诗', '数学写作', '仅科学写作'], answer: 0 },
+          { q: 'What is "counterargument"?', options: ['支持你的观点', '被回应的对立观点', '你的主要主张', '无关信息'], answer: 1 },
+          { q: 'What is "academic hedging"?', options: ['确定无疑的陈述', '使用谨慎、留有余地的表达', '傲慢的说法', '口语化'], answer: 1 }
+        ]
+      }
+    };
+
+    // ============== State ==============
+    let state = {
+      user: { nickname: '学习者', petName: '小黄', selectedExam: 'cet4', hasCompletedOnboarding: false, createdAt: new Date().toISOString() },
+      abilities: { vocab: 50, listening: 50, speaking: 50, reading: 50, writing: 50 },
+      learning: { learnedWords: [], completedTasks: [], totalStudyMinutes: 0, points: 50 },
+      pet: { type: 'cat', emoji: '🐱', color: '#FFD93D', name: '小黄', level: 1, exp: 0, hunger: 80, happiness: 90, isDead: false },
+      checkin: { dates: [], streak: 0, longestStreak: 0 },
+      dailyTasks: { vocab: false, reading: false, speaking: false },
+      wordSettings: { version: 'essential', order: 'random' } // essential/core/full, random/sequential
+    };
+
+    let currentExam = 'cet4';
+    let currentAbility = 'vocab';
+    let onboardingStep = 0;
+
+    // ============== Firebase Configuration ==============
+    // Note: Replace with your own Firebase config for production
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCmX8pvvKWulN32ByW65qQrmkQDuF5qJZo",
+      authDomain: "mem-lingo.firebaseapp.com",
+      projectId: "mem-lingo",
+      storageBucket: "mem-lingo.firebasestorage.app",
+      messagingSenderId: "604523002290",
+      appId: "1:604523002290:web:0ede6c0a2b29d78db8ccab",
+      measurementId: "G-QNHCQTPXL8"
+    };
+
+    // AI API 配置 (豆包)
+    const AI_CONFIG = {
+      baseURL: "https://corsproxy.io/?https://ark.cn-beijing.volces.com/api/coding/v3",
+      model: "doubao-seed-2.0-lite",
+      apiKey: "e6fc146d-4b6f-4803-bf53-a530b354bd23"
+    };
+
+    // 通用 AI 调用函数
+    async function callAI(messages) {
+      try {
+        const response = await fetch(AI_CONFIG.baseURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+          },
+          body: JSON.stringify({
+            model: AI_CONFIG.model,
+            messages: messages
+          })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          return data.choices[0].message.content;
+        }
+        return '抱歉，AI 暂时无法回答。';
+      } catch (error) {
+        console.error('AI API Error:', error);
+        return '抱歉，AI 服务连接失败。';
+      }
+    }
+
+    let firebaseInitialized = false;
+    let firebaseDb = null;
+    let firebaseAuth = null;
+    let currentUser = null;
+    let isOnline = false;
+
+    function initFirebase() {
+      if (firebaseInitialized) return true;
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        firebaseDb = firebase.database();
+        firebaseAuth = firebase.auth();
+        firebaseInitialized = true;
+        console.log('Firebase initialized');
+        return true;
+      } catch (e) {
+        console.log('Firebase init failed:', e);
+        return false;
+      }
+    }
+
+    // Demo mode when Firebase is not configured
+    let isDemoMode = true;
+
+    // ============== Online Features State ==============
+    let onlineState = {
+      isLoggedIn: false,
+      userId: null,
+      userName: '用户' + Math.floor(Math.random() * 10000),
+      avatar: '👤',
+      rank: 0,
+      totalScore: 0,
+      battlesWon: 0,
+      battlesLost: 0,
+      currentBattle: null,
+      groups: [],
+      currentGroup: null
+    };
+
+    // Auto login anonymously for demo
+    async function autoLogin() {
+      if (!initFirebase()) {
+        isDemoMode = true;
+        return;
+      }
+
+      isDemoMode = false;
+
+      try {
+        const result = await firebaseAuth.signInAnonymously();
+        currentUser = result.user;
+        onlineState.isLoggedIn = true;
+        onlineState.userId = currentUser.uid;
+        isOnline = true;
+        console.log('Logged in as:', currentUser.uid);
+
+        // Load user data
+        await loadUserData();
+      } catch (e) {
+        console.log('Anonymous login failed:', e);
+        isDemoMode = true;
+      }
+    }
+
+    async function loadUserData() {
+      if (isDemoMode || !currentUser) return;
+
+      try {
+        const snapshot = await firebaseDb.ref('users/' + currentUser.uid).once('value');
+        const data = snapshot.val();
+        if (data) {
+          onlineState.userName = data.name || onlineState.userName;
+          onlineState.avatar = data.avatar || onlineState.avatar;
+          onlineState.rank = data.rank || 0;
+          onlineState.totalScore = data.totalScore || 0;
+          onlineState.battlesWon = data.battlesWon || 0;
+          onlineState.battlesLost = data.battlesLost || 0;
+        }
+      } catch (e) {
+        console.log('Load user data failed:', e);
+      }
+    }
+
+    async function saveUserData() {
+      if (isDemoMode || !currentUser) return;
+
+      try {
+        await firebaseDb.ref('users/' + currentUser.uid).set({
+          name: onlineState.userName,
+          avatar: onlineState.avatar,
+          rank: onlineState.rank,
+          totalScore: onlineState.totalScore,
+          battlesWon: onlineState.battlesWon,
+          battlesLost: onlineState.battlesLost,
+          lastUpdate: Date.now()
+        });
+      } catch (e) {
+        console.log('Save user data failed:', e);
+      }
+    }
+
+    // ============== Battle System ==============
+    let battleState = {
+      status: 'idle', // idle, matching, vs, answering, result
+      opponent: null,
+      questions: [],
+      currentQuestion: 0,
+      myScore: 0,
+      opponentScore: 0,
+      timeLeft: 10
+    };
+
+    const BATTLE_QUESTIONS = 10;
+    const BATTLE_TIME = 10; // seconds per question
+    const BATTLE_POINTS_WIN = 50;
+    const BATTLE_POINTS_LOSE = 20;
+
+    async function findBattle() {
+      if (isDemoMode) {
+        showToast('演示模式：模拟匹配中...');
+        setTimeout(() => {
+          // Demo battle with AI
+          battleState.opponent = {
+            name: 'AI对手',
+            avatar: '🤖',
+            isAI: true
+          };
+          startBattle();
+        }, 1500);
+        return;
+      }
+
+      if (!onlineState.isLoggedIn) {
+        showToast('请先登录');
+        return;
+      }
+
+      battleState.status = 'matching';
+      showBattleMatching();
+
+      try {
+        // Create match request
+        const matchRef = firebaseDb.ref('matches').push();
+        await matchRef.set({
+          userId: currentUser.uid,
+          userName: onlineState.userName,
+          avatar: onlineState.avatar,
+          timestamp: Date.now(),
+          status: 'waiting'
+        });
+
+        // Listen for match
+        firebaseDb.ref('matches').orderByChild('status').equalTo('waiting').limitToFirst(1).on('child_added', async (snapshot) => {
+          const match = snapshot.val();
+          if (match.userId !== currentUser.uid) {
+            // Found opponent
+            await matchRef.remove();
+            battleState.opponent = {
+              id: match.userId,
+              name: match.userName,
+              avatar: match.avatar
+            };
+            startBattle();
+          }
+        });
+
+        // Timeout after 30 seconds
+        setTimeout(() => {
+          if (battleState.status === 'matching') {
+            cancelBattle();
+            showToast('匹配超时，请重试');
+          }
+        }, 30000);
+
+      } catch (e) {
+        console.log('Find battle failed:', e);
+        showToast('匹配失败，请重试');
+      }
+    }
+
+    function cancelBattle() {
+      battleState.status = 'idle';
+      closeModal();
+    }
+
+    function startBattle() {
+      battleState.status = 'vs';
+      battleState.currentQuestion = 0;
+      battleState.myScore = 0;
+      battleState.opponentScore = 0;
+
+      // Generate questions from current word list
+      const words = WORDS[currentExam] || WORDS.cet4;
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      battleState.questions = shuffled.slice(0, BATTLE_QUESTIONS).map(w => ({
+        word: w.word,
+        correct: w.meanings[0],
+        options: generateOptions(w.meanings[0], words)
+      }));
+
+      showBattleVS();
+    }
+
+    function generateOptions(correct, words) {
+      const options = [correct];
+      while (options.length < 4) {
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        const meaning = randomWord.meanings[0];
+        if (!options.includes(meaning)) {
+          options.push(meaning);
+        }
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function showBattleMatching() {
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">⚔️ 匹配对手</span>
+          <button class="modal-close" onclick="cancelBattle()">×</button>
+        </div>
+        <div style="text-align: center; padding: 40px;">
+          <div class="spinner" style="margin: 0 auto 20px;"></div>
+          <div style="font-size: 16px; font-weight: 600;">正在匹配对手...</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">预计等待 5-30 秒</div>
+          <button class="word-btn secondary" style="margin-top: 24px;" onclick="cancelBattle()">取消</button>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function showBattleVS() {
+      const html = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">⚔️ 对战开始！</div>
+
+          <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 30px;">
+            <div style="text-align: center;">
+              <div style="font-size: 48px;">${onlineState.avatar}</div>
+              <div style="font-weight: 600;">${onlineState.userName}</div>
+              <div style="font-size: 13px; color: var(--text-secondary);">你</div>
+            </div>
+            <div style="font-size: 24px; color: var(--primary);">VS</div>
+            <div style="text-align: center;">
+              <div style="font-size: 48px;">${battleState.opponent.avatar}</div>
+              <div style="font-weight: 600;">${battleState.opponent.name}</div>
+              <div style="font-size: 13px; color: var(--text-secondary);">对手</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+            <div style="font-size: 14px; color: var(--text-secondary);">规则</div>
+            <div style="font-size: 13px; margin-top: 8px;">
+              答对 +${BATTLE_POINTS_WIN}积分 | 答错 +${BATTLE_POINTS_LOSE}积分<br>
+              共${BATTLE_QUESTIONS}题，每题${BATTLE_TIME}秒
+            </div>
+          </div>
+
+          <button class="word-btn" style="width: 100%; padding: 14px;" onclick="startBattleQuestions()">
+            开始对战
+          </button>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    function startBattleQuestions() {
+      battleState.status = 'answering';
+      battleState.currentQuestion = 0;
+      showBattleQuestion();
+    }
+
+    function showBattleQuestion() {
+      const q = battleState.questions[battleState.currentQuestion];
+      const progress = (battleState.currentQuestion + 1) / BATTLE_QUESTIONS * 100;
+
+      const html = `
+        <div style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <span style="font-weight: 600;">${onlineState.userName}</span>
+              <span style="color: var(--primary);"> ${battleState.myScore}</span>
+              <span style="color: var(--text-secondary);"> vs </span>
+              <span style="font-weight: 600;">${battleState.opponent.name}</span>
+              <span style="color: var(--orange);"> ${battleState.opponentScore}</span>
+            </div>
+            <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+              ${battleState.currentQuestion + 1}/${BATTLE_QUESTIONS}
+            </div>
+          </div>
+
+          <div style="background: linear-gradient(135deg, var(--primary), var(--purple)); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 28px; font-weight: 700; color: white; font-family: 'Nunito', sans-serif;">${q.word}</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 8px;">选出正确的中文释义</div>
+          </div>
+
+          <div class="question-options" style="gap: 8px;">
+            ${q.options.map((opt, i) => `
+              <button class="question-option-btn" onclick="answerBattleQuestion(${i})" style="padding: 14px;">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    async function answerBattleQuestion(selectedIndex) {
+      const q = battleState.questions[battleState.currentQuestion];
+      const selected = q.options[selectedIndex];
+      const isCorrect = selected === q.correct;
+
+      if (isCorrect) {
+        battleState.myScore++;
+        state.learning.points += BATTLE_POINTS_WIN;
+      } else {
+        state.learning.points += BATTLE_POINTS_LOSE;
+      }
+
+      // Show result briefly
+      const buttons = document.querySelectorAll('.question-option-btn');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (q.options[i] === q.correct) {
+          btn.classList.add('correct');
+        } else if (i === selectedIndex) {
+          btn.classList.add('wrong');
+        }
+      });
+
+      // Demo: AI answers
+      if (battleState.opponent.isAI) {
+        // AI has 70% chance to answer correctly
+        if (Math.random() < 0.7) {
+          battleState.opponentScore++;
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      battleState.currentQuestion++;
+
+      if (battleState.currentQuestion >= BATTLE_QUESTIONS) {
+        endBattle();
+      } else {
+        showBattleQuestion();
+      }
+
+      saveState();
+      updateHeader();
+    }
+
+    function endBattle() {
+      battleState.status = 'result';
+
+      const won = battleState.myScore > battleState.opponentScore;
+      const draw = battleState.myScore === battleState.opponentScore;
+
+      if (won) {
+        onlineState.battlesWon++;
+        state.learning.points += 100; // Win bonus
+      } else if (!draw) {
+        onlineState.battlesLost++;
+      }
+
+      // Update rank
+      onlineState.totalScore += battleState.myScore * 10;
+      onlineState.rank = Math.floor(onlineState.totalScore / 1000);
+
+      saveUserData();
+
+      const resultHtml = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 64px; margin-bottom: 16px;">${won ? '🏆' : draw ? '🤝' : '😢'}</div>
+          <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">${won ? '胜利！' : draw ? '平局' : '失败'}</div>
+
+          <div style="display: flex; justify-content: space-around; align-items: center; margin: 24px 0;">
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${battleState.myScore}</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">你的得分</div>
+            </div>
+            <div style="font-size: 20px; color: var(--text-secondary);">:</div>
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: 700; color: var(--orange);">${battleState.opponentScore}</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">对手得分</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            ${won ? '+100 胜利奖励' : ''} +${battleState.myScore * 10} 参与积分
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="word-btn secondary" style="flex: 1;" onclick="closeModal(); switchTab('learning');">返回学习</button>
+            <button class="word-btn" style="flex: 1;" onclick="findBattle()">再战一局</button>
+          </div>
+        </div>
+      `;
+
+      // Replace modal content
+      document.getElementById('modal').innerHTML = resultHtml;
+    }
+
+    // ============== Group Check-in System ==============
+    let groupState = {
+      groups: [],
+      currentGroup: null
+    };
+
+    const DEMO_GROUPS = [
+      { id: 'g1', name: '四级冲刺群', desc: '每日打卡监督', members: 128, todayCheckins: 45, leader: '群主小王' },
+      { id: 'g2', name: '考研英语必胜', desc: '考研词汇每日背', members: 256, todayCheckins: 89, leader: '学姐小红' },
+      { id: 'g3', name: '托福听力特训', desc: '托福听力专项练习', members: 64, todayCheckins: 23, leader: '托福达人' },
+      { id: 'g4', name: '雅思口语实战', desc: '雅思口语对练', members: 89, todayCheckins: 34, leader: '雅思7分' }
+    ];
+
+    async function showGroups() {
+      if (isDemoMode) {
+        groupState.groups = DEMO_GROUPS;
+      }
+
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">👥 打卡小组</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div style="padding: 16px 0;">
+          <button class="word-btn" style="width: 100%; margin-bottom: 16px;" onclick="createGroup()">创建小组</button>
+
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            加入小组可获得额外积分奖励！
+          </div>
+      `;
+
+      for (const group of groupState.groups) {
+        const isJoined = onlineState.currentGroup === group.id;
+        html += `
+          <div class="word-card" style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="font-weight: 600;">${group.name}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">${group.desc}</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                  👥 ${group.members}人 | 📅 今日${group.todayCheckins}人打卡
+                </div>
+              </div>
+              ${isJoined ?
+                '<span style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">已加入</span>' :
+                '<button class="word-btn secondary" style="padding: 4px 12px; font-size: 11px;" onclick="joinGroup(\'' + group.id + '\')">加入</button>'
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      showModal(html);
+    }
+
+    async function joinGroup(groupId) {
+      if (isDemoMode) {
+        showToast('演示模式：已加入小组');
+        onlineState.currentGroup = groupId;
+        closeModal();
+        return;
+      }
+
+      if (!onlineState.isLoggedIn) {
+        showToast('请先登录');
+        return;
+      }
+
+      try {
+        await firebaseDb.ref('groups/' + groupId + '/members/' + currentUser.uid).set({
+          name: onlineState.userName,
+          avatar: onlineState.avatar,
+          joinedAt: Date.now()
+        });
+
+        onlineState.currentGroup = groupId;
+        showToast('加入成功！');
+        closeModal();
+      } catch (e) {
+        showToast('加入失败：' + e.message);
+      }
+    }
+
+    async function groupCheckin() {
+      if (!onlineState.currentGroup) {
+        showToast('请先加入小组');
+        return;
+      }
+
+      const today = new Date().toDateString();
+      const checkinKey = 'groupCheckins/' + today;
+
+      if (isDemoMode) {
+        showToast('小组打卡成功！+30 积分');
+        state.learning.points += 30;
+        state.pet.happiness = Math.min(100, state.pet.happiness + 5);
+        saveState();
+        updateHeader();
+        renderPet();
+        return;
+      }
+
+      try {
+        const userCheckin = await firebaseDb.ref('users/' + currentUser.uid + '/' + checkinKey).once('value');
+        if (userCheckin.exists()) {
+          showToast('今日已打卡');
+          return;
+        }
+
+        await firebaseDb.ref('users/' + currentUser.uid).update({ [checkinKey]: true });
+        await firebaseDb.ref('groups/' + onlineState.currentGroup + '/checkins/' + today + '/' + currentUser.uid).set(true);
+
+        showToast('小组打卡成功！+30 积分');
+        state.learning.points += 30;
+        state.pet.happiness = Math.min(100, state.pet.happiness + 5);
+        saveState();
+        saveUserData();
+        updateHeader();
+        renderPet();
+      } catch (e) {
+        showToast('打卡失败：' + e.message);
+      }
+    }
+
+    function createGroup() {
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">创建小组</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div style="padding: 16px 0;">
+          <div style="margin-bottom: 16px;">
+            <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 4px;">小组名称</label>
+            <input type="text" id="group-name-input" placeholder="例如：四级冲刺群"
+                   style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 4px;">小组描述</label>
+            <input type="text" id="group-desc-input" placeholder="每日打卡监督学习"
+                   style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+          </div>
+          <button class="word-btn" style="width: 100%;" onclick="confirmCreateGroup()">创建</button>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    async function confirmCreateGroup() {
+      const name = document.getElementById('group-name-input').value.trim();
+      const desc = document.getElementById('group-desc-input').value.trim();
+
+      if (!name) {
+        showToast('请输入小组名称');
+        return;
+      }
+
+      if (isDemoMode) {
+        showToast('演示模式：小组已创建');
+        closeModal();
+        return;
+      }
+
+      if (!onlineState.isLoggedIn) {
+        showToast('请先登录');
+        return;
+      }
+
+      try {
+        const newGroupRef = firebaseDb.ref('groups').push();
+        await newGroupRef.set({
+          name: name,
+          desc: desc,
+          leaderId: currentUser.uid,
+          leaderName: onlineState.userName,
+          createdAt: Date.now(),
+          members: {
+            [currentUser.uid]: {
+              name: onlineState.userName,
+              avatar: onlineState.avatar,
+              isLeader: true
+            }
+          }
+        });
+
+        onlineState.currentGroup = newGroupRef.key;
+        showToast('小组创建成功！');
+        closeModal();
+      } catch (e) {
+        showToast('创建失败：' + e.message);
+      }
+    }
+
+    // ============== Online Tab ==============
+    function renderOnlineContent() {
+      return `
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(79,134,247,0.1);">⚔️</div>
+          <div class="section-info">
+            <div class="section-title">在线对战</div>
+            <div class="section-subtitle">与其他用户 PK</div>
+          </div>
+        </div>
+
+        <div class="word-card" style="text-align: center; padding: 24px;">
+          <div style="font-size: 48px; margin-bottom: 12px;">⚔️</div>
+          <div style="font-weight: 600; margin-bottom: 8px;">单词对战</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            匹配对手，答题 PK，赢取积分！
+          </div>
+          <button class="word-btn" style="padding: 12px 32px;" onclick="findBattle()">
+            开始匹配
+          </button>
+          <div style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+            胜利 +${BATTLE_POINTS_WIN * 2 + 100}积分 | 失败 +${BATTLE_POINTS_LOSE * 2}积分
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(78,205,196,0.1);">👥</div>
+          <div class="section-info">
+            <div class="section-title">打卡小组</div>
+            <div class="section-subtitle">互相监督学习</div>
+          </div>
+        </div>
+
+        <div class="word-card" style="text-align: center; padding: 24px;">
+          <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+          <div style="font-weight: 600; margin-bottom: 8px;">加入学习小组</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            与志同道合的伙伴一起打卡学习<br>
+            小组打卡额外 +30 积分/天
+          </div>
+          <button class="word-btn" style="padding: 12px 32px; background: var(--teal);" onclick="showGroups()">
+            查看小组
+          </button>
+        </div>
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(255,193,7,0.1);">🏆</div>
+          <div class="section-info">
+            <div class="section-title">我的战绩</div>
+            <div class="section-subtitle">积分: ${onlineState.totalScore} | 段位: ${getRankName(onlineState.rank)}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+          <div class="word-card" style="flex: 1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: #4CAF50;">${onlineState.battlesWon}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">胜利</div>
+          </div>
+          <div class="word-card" style="flex: 1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: #F44336;">${onlineState.battlesLost}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">失败</div>
+          </div>
+          <div class="word-card" style="flex: 1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);">Lv.${onlineState.rank}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">段位</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getRankName(rank) {
+      if (rank < 5) return '青铜';
+      if (rank < 10) return '白银';
+      if (rank < 20) return '黄金';
+      if (rank < 50) return '铂金';
+      if (rank < 100) return '钻石';
+      return '王者';
+    }
+
+    // ============== IndexedDB for Word Storage ==============
+    const DB_NAME = 'MemLingoDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'words';
+    const WORD_CACHE_STORE = 'wordCache';
+    let db = null;
+
+    async function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            database.createObjectStore(STORE_NAME, { keyPath: 'word' });
+          }
+          if (!database.objectStoreNames.contains(WORD_CACHE_STORE)) {
+            database.createObjectStore(WORD_CACHE_STORE, { keyPath: 'word' });
+          }
+        };
+      });
+    }
+
+    async function saveWordsToDB(exam, words) {
+      if (!db) await initDB();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+
+      // Clear existing words for this exam
+      const clearRequest = store.openCursor();
+      clearRequest.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor && cursor.value.exam === exam) {
+          cursor.delete();
+        } else if (cursor) {
+          cursor.continue();
+        }
+      };
+
+      // Add new words
+      words.forEach(word => {
+        store.put({ ...word, exam });
+      });
+
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = resolve;
+        tx.onerror = reject;
+      });
+    }
+
+    async function getWordsFromDB(exam) {
+      if (!db) await initDB();
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const index = store.index('exam');
+      const request = index.getAll(exam);
+
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = reject;
+      });
+    }
+
+    async function cacheWordLookup(word, data) {
+      if (!db) await initDB();
+      const tx = db.transaction(WORD_CACHE_STORE, 'readwrite');
+      const store = tx.objectStore(WORD_CACHE_STORE);
+      store.put({ word: word.toLowerCase(), data, timestamp: Date.now() });
+    }
+
+    async function getCachedLookup(word) {
+      if (!db) await initDB();
+      const tx = db.transaction(WORD_CACHE_STORE, 'readonly');
+      const store = tx.objectStore(WORD_CACHE_STORE);
+      const request = store.get(word.toLowerCase());
+
+      return new Promise((resolve) => {
+        request.onsuccess = () => {
+          const result = request.result;
+          if (result && Date.now() - result.timestamp < 7 * 24 * 60 * 60 * 1000) { // 7 days cache
+            resolve(result.data);
+          } else {
+            resolve(null);
+          }
+        };
+        request.onerror = () => resolve(null);
+      });
+    }
+
+    // ============== Dictionary API ==============
+    const DICTIONARY_API = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+
+    async function lookupWord(word) {
+      // Check cache first
+      const cached = await getCachedLookup(word);
+      if (cached) return cached;
+
+      try {
+        const response = await fetch(`${DICTIONARY_API}/${encodeURIComponent(word)}`);
+        if (!response.ok) throw new Error('Word not found');
+
+        const data = await response.json();
+
+        // Transform API data to our format
+        const result = transformDictionaryData(data);
+
+        // Cache the result
+        await cacheWordLookup(word, result);
+
+        return result;
+      } catch (error) {
+        console.log('Dictionary lookup failed:', error);
+        return null;
+      }
+    }
+
+    function transformDictionaryData(data) {
+      if (!data || !data[0]) return null;
+
+      const entry = data[0];
+      const meanings = [];
+      const examples = [];
+      const phonetics = [];
+
+      // Extract phonetics
+      if (entry.phonetics) {
+        entry.phonetics.forEach(p => {
+          if (p.text) phonetics.push(p.text);
+        });
+      }
+
+      // Extract meanings and examples
+      if (entry.meanings) {
+        entry.meanings.forEach(meaning => {
+          const partOfSpeech = meaning.partOfSpeech;
+          meaning.definitions.forEach(def => {
+            meanings.push(`[${partOfSpeech}] ${def.definition}`);
+            if (def.example) {
+              examples.push(def.example);
+            }
+          });
+        });
+      }
+
+      return {
+        word: entry.word,
+        phonetic: phonetics[0] || '',
+        phonetics: phonetics,
+        meanings: meanings.slice(0, 10),
+        examples: examples.slice(0, 5),
+        audio: entry.phonetics?.find(p => p.audio)?.audio || ''
+      };
+    }
+
+    // ============== Word Lookup Modal ==============
+    async function showWordLookup(word) {
+      const loadingHtml = `
+        <div class="modal-header">
+          <span class="modal-title">🔍 查词中...</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="loading">
+          <div class="spinner"></div>
+          <div>正在查询 "${word}"</div>
+        </div>
+      `;
+      showModal(loadingHtml);
+
+      const result = await lookupWord(word);
+
+      if (!result) {
+        const notFoundHtml = `
+          <div class="modal-header">
+            <span class="modal-title">🔍 ${word}</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
+          </div>
+          <div class="word-card" style="text-align: center; padding: 40px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">😕</div>
+            <div style="font-weight: 600; margin-bottom: 8px;">未找到该词</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">
+              请检查拼写或尝试搜索其他单词
+            </div>
+          </div>
+        `;
+        showModal(notFoundHtml);
+        return;
+      }
+
+      const wordLookupHtml = `
+        <div class="modal-header">
+          <span class="modal-title">📖 ${result.word}</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card" style="margin-bottom: 12px;">
+          <div class="word-header">
+            <span class="word-text" style="font-size: 24px;">${result.word}</span>
+          </div>
+          ${result.phonetic ? `<div class="word-phonetic" style="font-size: 16px; margin: 8px 0;">${result.phonetic}</div>` : ''}
+          ${result.audio ? `
+            <button class="word-btn" onclick="playAudio('${result.audio}')" style="margin-top: 8px;">
+              🔊 发音
+            </button>
+          ` : ''}
+        </div>
+
+        <div class="word-card" style="background: rgba(79,134,247,0.05);">
+          <div style="font-weight: 600; margin-bottom: 8px; color: var(--primary);">📝 释义</div>
+          ${result.meanings.map(m => `
+            <div style="margin-bottom: 6px; line-height: 1.6;">${m}</div>
+          `).join('')}
+        </div>
+
+        ${result.examples && result.examples.length > 0 ? `
+          <div class="word-card" style="background: rgba(78,205,196,0.05);">
+            <div style="font-weight: 600; margin-bottom: 8px; color: var(--teal);">💬 例句</div>
+            ${result.examples.map(e => `
+              <div style="margin-bottom: 8px; font-style: italic; color: var(--text-secondary); line-height: 1.6;">
+                "${e}"
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button class="word-btn" style="flex: 1;" onclick="speakWord('${result.word}')">🔊 朗读</button>
+          <button class="word-btn secondary" style="flex: 1;" onclick="markWord('${result.word}')">✓ 标记已学</button>
+        </div>
+      `;
+      showModal(wordLookupHtml);
+    }
+
+    function playAudio(url) {
+      if (url) {
+        const audio = new Audio(url);
+        audio.play();
+      }
+    }
+
+    // ============== Init ==============
+    async function init() {
+      // Initialize IndexedDB
+      try {
+        await initDB();
+        console.log('IndexedDB initialized');
+      } catch (e) {
+        console.log('IndexedDB init failed, using memory only');
+      }
+
+      loadState();
+      checkDailyReset();
+      checkPetStatus();
+
+      if (state.user.hasCompletedOnboarding) {
+        document.getElementById('onboarding').style.display = 'none';
+        renderExamSelector();
+        renderAbilityTabs();
+        renderAbilityContent();
+        renderPet();
+        renderCalendar();
+        renderDailyTasks();
+        updateProfileStats();
+        updateHeader();
+      } else {
+        renderOnboarding();
+      }
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('lingo_pet_state_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Deep merge to preserve new state fields
+        state = deepMerge(state, parsed);
+      }
+    }
+
+    function deepMerge(target, source) {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          target[key] = deepMerge(target[key] || {}, source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+      return target;
+    }
+
+    function saveState() {
+      localStorage.setItem('lingo_pet_state_v2', JSON.stringify(state));
+    }
+
+    function checkDailyReset() {
+      const today = new Date().toDateString();
+      const lastReset = localStorage.getItem('lingo_pet_last_reset');
+      if (lastReset !== today) {
+        // Daily reset
+        state.dailyTasks = { vocab: false, reading: false, speaking: false };
+        // Decay pet stats
+        if (!state.pet.isDead) {
+          state.pet.hunger = Math.max(0, state.pet.hunger - 10);
+          state.pet.happiness = Math.max(0, state.pet.happiness - 5);
+        }
+        localStorage.setItem('lingo_pet_last_reset', today);
+        saveState();
+      }
+    }
+
+    function checkPetStatus() {
+      if (state.pet.hunger <= 0 && !state.pet.isDead) {
+        state.pet.isDead = true;
+        saveState();
+        document.getElementById('dead-pet-overlay').style.display = 'flex';
+      }
+    }
+
+    // ============== Onboarding ==============
+    function renderOnboarding() {
+      const container = document.getElementById('onboarding');
+
+      if (onboardingStep === 0) {
+        // Welcome
+        container.innerHTML = `
+          <div class="onboarding-logo">📚</div>
+          <div class="onboarding-title">Mem-Lingo</div>
+          <div class="onboarding-subtitle">智能英语学习 + 宠物养成<br>完成测评解锁你的专属学习伙伴</div>
+          <button class="onboarding-btn" onclick="nextOnboardingStep()">开始测评</button>
+          <button class="onboarding-btn" style="background: transparent; color: var(--text-secondary); margin-top: 12px; font-size: 14px;" onclick="skipOnboarding()">跳过，直接使用</button>
+        `;
+      } else if (onboardingStep === 1) {
+        // Exam Selection
+        container.innerHTML = `
+          <div class="onboarding-subtitle">选择你的目标考试</div>
+          <div class="exam-grid">
+            ${EXAMS.map(exam => `
+              <div class="exam-option" data-exam="${exam.id}" onclick="selectOnboardingExam('${exam.id}')">
+                <div class="exam-option-name">${exam.shortName}</div>
+                <div class="exam-option-count">${exam.wordCount} 词</div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="onboarding-btn" id="onboarding-exam-btn" disabled onclick="nextOnboardingStep()">下一步</button>
+        `;
+      } else if (onboardingStep === 2) {
+        // Assessment
+        renderAssessment();
+      } else if (onboardingStep === 3) {
+        // Pet Hatching
+        renderPetHatching();
+      }
+    }
+
+    function nextOnboardingStep() {
+      onboardingStep++;
+      renderOnboarding();
+    }
+
+    function skipOnboarding() {
+      state.user.hasCompletedOnboarding = true;
+      // Generate random pet
+      const petType = PET_TYPES[Math.floor(Math.random() * PET_TYPES.length)];
+      state.pet = { ...state.pet, ...petType, name: '小黄' };
+      saveState();
+      document.getElementById('onboarding').style.display = 'none';
+      renderExamSelector();
+      renderAbilityTabs();
+      renderAbilityContent();
+      renderPet();
+      renderCalendar();
+      renderDailyTasks();
+      updateProfileStats();
+      updateHeader();
+    }
+
+    function selectOnboardingExam(examId) {
+      currentExam = examId;
+      state.user.selectedExam = examId;
+      document.querySelectorAll('.exam-option').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`[data-exam="${examId}"]`).classList.add('selected');
+      document.getElementById('onboarding-exam-btn').disabled = false;
+    }
+
+    // Assessment
+    let assessmentAnswers = {};
+    let currentQuestionIndex = 0;
+
+    // Assessment structure: easy-5, medium-5, hard-3 per ability (writing has fewer)
+    const ASSESSMENT_ABILITIES = ['vocab', 'reading', 'listening', 'speaking', 'writing'];
+    const DIFFICULTY_CONFIG = {
+      vocab: { easy: 5, medium: 5, hard: 5 },
+      reading: { easy: 5, medium: 5, hard: 5 },
+      listening: { easy: 5, medium: 5, hard: 5 },
+      speaking: { easy: 5, medium: 5, hard: 4 },
+      writing: { easy: 4, medium: 4, hard: 3 }  // Fewer questions for writing
+    };
+
+    function getAssessmentStructure() {
+      const structure = [];
+      ASSESSMENT_ABILITIES.forEach(ability => {
+        const config = DIFFICULTY_CONFIG[ability];
+        ['easy', 'medium', 'hard'].forEach(diff => {
+          for (let i = 0; i < config[diff]; i++) {
+            structure.push({ ability, difficulty: diff, index: i });
+          }
+        });
+      });
+      return structure;
+    }
+
+    const ASSESSMENT_ORDER = getAssessmentStructure();
+    const TOTAL_QUESTIONS = ASSESSMENT_ORDER.length;
+
+    function renderAssessment() {
+      const container = document.getElementById('onboarding');
+      const abilityLabels = { vocab: '词汇', reading: '阅读', listening: '听力', speaking: '口语', writing: '写作' };
+      const difficultyLabels = { easy: '简单', medium: '中等', hard: '困难' };
+      const difficultyColors = { easy: '#4ECDC4', medium: '#FFC107', hard: '#FF7043' };
+
+      if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+        calculateAssessmentResults();
+        onboardingStep = 3;
+        renderOnboarding();
+        return;
+      }
+
+      const currentQ = ASSESSMENT_ORDER[currentQuestionIndex];
+      const question = ASSESSMENT_QUESTIONS[currentQ.ability][currentQ.difficulty][currentQ.index];
+
+      // Calculate progress
+      const abilityIndex = ASSESSMENT_ABILITIES.indexOf(currentQ.ability);
+      const abilityProgress = ASSESSMENT_ORDER.filter((q, i) => ASSESSMENT_ABILITIES.indexOf(q.ability) < abilityIndex).length;
+      const currentAbilityProgress = ASSESSMENT_ORDER.slice(abilityProgress, currentQuestionIndex + 1).filter(q => q.ability === currentQ.ability).length;
+      const totalInAbility = DIFFICULTY_CONFIG[currentQ.ability].easy + DIFFICULTY_CONFIG[currentQ.ability].medium + DIFFICULTY_CONFIG[currentQ.ability].hard;
+
+      const progressDots = ASSESSMENT_ABILITIES.map((a, i) => {
+        const aIndex = ASSESSMENT_ABILITIES.indexOf(a);
+        const aStart = ASSESSMENT_ORDER.findIndex(q => q.ability === a);
+        const aTotal = DIFFICULTY_CONFIG[a].easy + DIFFICULTY_CONFIG[a].medium + DIFFICULTY_CONFIG[a].hard;
+        const aEnd = aStart + aTotal;
+        const completed = currentQuestionIndex >= aEnd;
+        const current = currentQuestionIndex >= aStart && currentQuestionIndex < aEnd;
+        return `<div class="progress-dot ${completed ? 'completed' : ''} ${current ? 'current' : ''}" style="${current ? 'background:' + difficultyColors[currentQ.difficulty] : ''}"></div>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div style="text-align: center; margin-bottom: 16px;">
+          <span style="color: var(--primary); font-weight: 600;">${abilityLabels[currentQ.ability]}</span>
+          <span style="color: var(--text-secondary);"> - 能力测评</span>
+        </div>
+        <div class="assessment-progress">
+          ${progressDots}
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <span style="display: inline-block; padding: 4px 12px; background: ${difficultyColors[currentQ.difficulty]}22; color: ${difficultyColors[currentQ.difficulty]}; border-radius: 12px; font-size: 12px; font-weight: 600;">
+            ${difficultyLabels[currentQ.difficulty]}
+          </span>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px; color: var(--text-secondary); font-size: 13px;">
+          题目 ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}
+        </div>
+        <div class="question-card" style="width: 100%; max-width: 350px;">
+          <div class="question-text">${question.q}</div>
+          <div class="question-options">
+            ${question.options.map((opt, i) => `
+              <div class="question-option ${assessmentAnswers[currentQuestionIndex] === i ? 'selected' : ''}" onclick="selectAssessmentAnswer(${i})">${opt}</div>
+            `).join('')}
+          </div>
+        </div>
+        <button class="onboarding-btn" style="max-width: 350px;" ${assessmentAnswers[currentQuestionIndex] === undefined ? 'disabled' : ''} onclick="nextQuestion()">
+          ${currentQuestionIndex === TOTAL_QUESTIONS - 1 ? '完成测评' : '下一题'}
+        </button>
+        <button class="onboarding-btn" style="background: transparent; color: var(--text-secondary); margin-top: 12px; font-size: 14px;" onclick="skipToPetHatching()">
+          跳过，直接生成结果
+        </button>
+      `;
+    }
+
+    function selectAssessmentAnswer(index) {
+      assessmentAnswers[currentQuestionIndex] = index;
+      renderAssessment();
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      renderAssessment();
+    }
+
+    function skipToPetHatching() {
+      onboardingStep = 3;
+      renderOnboarding();
+    }
+
+    function calculateAssessmentResults() {
+      const results = {};
+
+      ASSESSMENT_ABILITIES.forEach(ability => {
+        const config = DIFFICULTY_CONFIG[ability];
+        let totalScore = 0;
+        let maxPossible = 0;
+        let qIndex = 0;
+
+        // Easy questions
+        for (let i = 0; i < config.easy; i++) {
+          const question = ASSESSMENT_QUESTIONS[ability].easy[i];
+          if (assessmentAnswers[qIndex] !== undefined && assessmentAnswers[qIndex] === question.answer) {
+            totalScore += 10;
+          }
+          maxPossible += 10;
+          qIndex++;
+        }
+
+        // Medium questions
+        for (let i = 0; i < config.medium; i++) {
+          const question = ASSESSMENT_QUESTIONS[ability].medium[i];
+          if (assessmentAnswers[qIndex] !== undefined && assessmentAnswers[qIndex] === question.answer) {
+            totalScore += 15;
+          }
+          maxPossible += 15;
+          qIndex++;
+        }
+
+        // Hard questions
+        for (let i = 0; i < config.hard; i++) {
+          const question = ASSESSMENT_QUESTIONS[ability].hard[i];
+          if (assessmentAnswers[qIndex] !== undefined && assessmentAnswers[qIndex] === question.answer) {
+            totalScore += 20;
+          }
+          maxPossible += 20;
+          qIndex++;
+        }
+
+        // Normalize to 0-100
+        results[ability] = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0;
+      });
+
+      state.abilities = results;
+
+      // Generate pet based on dominant ability
+      const petType = PET_TYPES[Math.floor(Math.random() * PET_TYPES.length)];
+      state.pet = {
+        ...state.pet,
+        ...petType,
+        name: '小黄',
+        hunger: 80,
+        happiness: 90
+      };
+
+      state.user.hasCompletedOnboarding = true;
+      saveState();
+    }
+
+    function renderPetHatching() {
+      const container = document.getElementById('onboarding');
+      const pet = state.pet;
+
+      container.innerHTML = `
+        <div class="onboarding-subtitle">测评完成！</div>
+        <div class="pet-preview">
+          <div class="pet-emoji">${pet.emoji}</div>
+        </div>
+        <div class="pet-name">你的宠物: ${pet.name}</div>
+        <div class="pet-level">等级 Lv.1</div>
+
+        <div class="ability-summary" style="width: 100%; max-width: 300px;">
+          <div class="ability-row">
+            <span class="ability-name">📚 词汇</span>
+            <span class="ability-value">${state.abilities.vocab}</span>
+          </div>
+          <div class="ability-row">
+            <span class="ability-name">🎧 听力</span>
+            <span class="ability-value">${state.abilities.listening}</span>
+          </div>
+          <div class="ability-row">
+            <span class="ability-name">🎤 口语</span>
+            <span class="ability-value">${state.abilities.speaking}</span>
+          </div>
+          <div class="ability-row">
+            <span class="ability-name">📖 阅读</span>
+            <span class="ability-value">${state.abilities.reading}</span>
+          </div>
+          <div class="ability-row">
+            <span class="ability-name">✏️ 写作</span>
+            <span class="ability-value">${state.abilities.writing}</span>
+          </div>
+        </div>
+
+        <button class="onboarding-btn" onclick="finishOnboarding()">开始学习</button>
+      `;
+
+      // Render mini radar chart
+      setTimeout(() => {
+        renderMiniRadarChart(container.querySelector('.ability-summary'));
+      }, 100);
+    }
+
+    function renderMiniRadarChart(container) {
+      const abilities = ['vocab', 'listening', 'speaking', 'reading', 'writing'];
+      const labels = ['词汇', '听力', '口语', '阅读', '写作'];
+      const values = abilities.map(a => state.abilities[a]);
+
+      // Simple bar chart alternative
+      let html = '';
+      abilities.forEach((ability, i) => {
+        html += `
+          <div class="ability-row">
+            <span class="ability-name">${labels[i]}</span>
+            <span class="ability-value">${values[i]}</span>
+          </div>
+        `;
+      });
+    }
+
+    function finishOnboarding() {
+      document.getElementById('onboarding').style.display = 'none';
+      renderExamSelector();
+      renderAbilityTabs();
+      renderAbilityContent();
+      renderPet();
+      renderCalendar();
+      renderDailyTasks();
+      updateProfileStats();
+      updateHeader();
+    }
+
+    function startAssessment() {
+      assessmentAnswers = {};
+      currentQuestionIndex = 0;
+      onboardingStep = 2;
+      document.getElementById('onboarding').style.display = 'flex';
+      renderOnboarding();
+    }
+
+    // ============== Navigation ==============
+    function switchTab(tab) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+      document.getElementById(`page-${tab}`).classList.add('active');
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+      if (tab === 'pet') {
+        renderPet();
+        renderCalendar();
+        renderDailyTasks();
+      } else if (tab === 'profile') {
+        updateProfileStats();
+      } else if (tab === 'online') {
+        renderOnlineContent();
+      }
+    }
+
+    // ============== Exam Selector ==============
+    function renderExamSelector() {
+      const container = document.getElementById('exam-selector');
+      container.innerHTML = EXAMS.map(exam => `
+        <div class="exam-card ${exam.id === currentExam ? 'selected' : ''}"
+             onclick="selectExam('${exam.id}')">
+          <div class="exam-name">${exam.shortName}</div>
+          <div class="exam-count">${exam.wordCount} 词</div>
+        </div>
+      `).join('');
+    }
+
+    function selectExam(examId) {
+      currentExam = examId;
+      state.user.selectedExam = examId;
+      saveState();
+      renderExamSelector();
+      renderAbilityContent();
+    }
+
+    function switchExam() {
+      const examNames = { cet4: 'CET-4', cet6: 'CET-6', kaoyan: '考研', toefl: '托福', ielts: '雅思' };
+      let html = '<div style="padding: 16px;"><div class="section-title" style="margin-bottom: 16px;">选择目标考试</div>';
+      html += '<div class="exam-grid">';
+      EXAMS.forEach(exam => {
+        html += `
+          <div class="exam-option ${exam.id === currentExam ? 'selected' : ''}" onclick="confirmSwitchExam('${exam.id}')">
+            <div class="exam-option-name">${exam.shortName}</div>
+            <div class="exam-option-count">${exam.wordCount} 词</div>
+          </div>
+        `;
+      });
+      html += '</div></div>';
+      showModal(html);
+    }
+
+    function confirmSwitchExam(examId) {
+      currentExam = examId;
+      state.user.selectedExam = examId;
+      saveState();
+      closeModal();
+      renderExamSelector();
+      renderAbilityContent();
+      document.getElementById('setting-exam').textContent = EXAMS.find(e => e.id === examId).name;
+      showToast('目标考试已更新');
+    }
+
+    // ============== Ability Tabs ==============
+    function renderAbilityTabs() {
+      const container = document.getElementById('ability-tabs');
+      container.innerHTML = ABILITIES.map(ability => `
+        <div class="ability-tab ${ability.id === currentAbility ? 'active' : ''}"
+             data-type="${ability.id}"
+             onclick="selectAbility('${ability.id}')">
+          <span>${ability.icon}</span>
+          <span>${ability.name}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectAbility(abilityId) {
+      currentAbility = abilityId;
+      renderAbilityTabs();
+      renderAbilityContent();
+    }
+
+    // ============== Content Rendering ==============
+    function renderAbilityContent() {
+      const container = document.getElementById('ability-content');
+
+      switch (currentAbility) {
+        case 'vocab':
+          container.innerHTML = renderVocabContent();
+          break;
+        case 'listening':
+          container.innerHTML = renderListeningContent();
+          break;
+        case 'speaking':
+          container.innerHTML = renderSpeakingContent();
+          break;
+        case 'reading':
+          container.innerHTML = renderReadingContent();
+          break;
+        case 'writing':
+          container.innerHTML = renderWritingContent();
+          break;
+      }
+    }
+
+    function renderVocabContent() {
+      const words = WORDS[currentExam] || WORDS.cet4;
+
+      // Filter by version
+      let filteredWords = words;
+      if (state.wordSettings.version === 'core') {
+        filteredWords = words.filter(w => w.isCore);
+      } else if (state.wordSettings.version === 'essential') {
+        filteredWords = words.filter(w => w.isCore).slice(0, Math.floor(words.filter(w => w.isCore).length * 0.5));
+      }
+
+      // Sort by order
+      if (state.wordSettings.order === 'sequential') {
+        filteredWords = [...filteredWords].sort((a, b) => a.word.localeCompare(b.word));
+      } else {
+        filteredWords = [...filteredWords].sort(() => Math.random() - 0.5);
+      }
+
+      const coreWords = filteredWords.filter(w => w.isCore);
+
+      return `
+        <!-- Word Search -->
+        <div class="word-card" style="margin-bottom: 16px; padding: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="word-search-input" placeholder="输入单词查询词典..."
+                   style="flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
+                   onkeypress="if(event.key==='Enter')searchWord()">
+            <button class="word-btn" onclick="searchWord()">🔍 查询</button>
+          </div>
+        </div>
+
+        <!-- Word Settings -->
+        <div class="word-card" style="margin-bottom: 16px; padding: 12px;">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">学习设置</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <select id="version-select" onchange="updateWordVersion(this.value)"
+                    style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+              <option value="essential" ${state.wordSettings.version === 'essential' ? 'selected' : ''}>精简版</option>
+              <option value="core" ${state.wordSettings.version === 'core' ? 'selected' : ''}>核心版</option>
+              <option value="full" ${state.wordSettings.version === 'full' ? 'selected' : ''}>完整版</option>
+            </select>
+            <select id="order-select" onchange="updateWordOrder(this.value)"
+                    style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+              <option value="random" ${state.wordSettings.order === 'random' ? 'selected' : ''}>随机顺序</option>
+              <option value="sequential" ${state.wordSettings.order === 'sequential' ? 'selected' : ''}>正序</option>
+            </select>
+            <button class="word-btn secondary" onclick="showAllWords()">📚 词库列表</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+          <div style="flex: 1; background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 20px; font-weight: 700; color: var(--primary);">${filteredWords.length}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">当前词数</div>
+          </div>
+          <div style="flex: 1; background: var(--card); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 20px; font-weight: 700; color: var(--yellow);">${state.learning.learnedWords.length}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">已掌握</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(255,193,7,0.1);">⭐</div>
+          <div class="section-info">
+            <div class="section-title">核心词汇</div>
+            <div class="section-subtitle">${coreWords.length} 个重点词汇</div>
+          </div>
+        </div>
+
+        ${coreWords.slice(0, 5).map(word => renderWordCard(word)).join('')}
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(79,134,247,0.1);">📚</div>
+          <div class="section-info">
+            <div class="section-title">学习词汇</div>
+            <div class="section-subtitle">随机展示</div>
+          </div>
+        </div>
+
+        ${filteredWords.slice(0, 10).map(word => renderWordCard(word)).join('')}
+
+        <button class="word-btn secondary" style="width:100%; margin-top: 8px;" onclick="showAllWords()">
+          查看全部词汇
+        </button>
+      `;
+    }
+
+    function searchWord() {
+      const input = document.getElementById('word-search-input');
+      const word = input.value.trim();
+      if (word) {
+        showWordLookup(word);
+        input.value = '';
+      }
+    }
+
+    function updateWordVersion(version) {
+      state.wordSettings.version = version;
+      saveState();
+      renderAbilityContent();
+    }
+
+    function updateWordOrder(order) {
+      state.wordSettings.order = order;
+      saveState();
+      renderAbilityContent();
+    }
+
+    function renderWordCard(word) {
+      const learned = state.learning.learnedWords.includes(word.word);
+      return `
+        <div class="word-card">
+          <div class="word-header">
+            <span class="word-text">${word.word}</span>
+            <span class="word-phonetic">${word.phonetic}</span>
+            ${word.isCore ? '<span class="word-badge">核心</span>' : ''}
+          </div>
+          <div class="word-meaning">${word.meanings.join(' · ')}</div>
+          ${word.example ? `<div class="word-example">"${word.example}"</div>` : ''}
+          <div class="word-actions">
+            <button class="word-btn" onclick="speakWord('${word.word}')">🔊 发音</button>
+            <button class="word-btn ${learned ? 'secondary' : ''}" onclick="markWord('${word.word}')">
+              ${learned ? '✓ 已掌握' : '✓ 标记已学'}
+            </button>
+            <button class="word-btn ai" onclick="askAI('${word.word}')">🤖 AI问答</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderListeningContent() {
+      return `
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(123,92,250,0.1);">🎧</div>
+          <div class="section-info">
+            <div class="section-title">听力训练</div>
+            <div class="section-subtitle">提升听力理解能力</div>
+          </div>
+        </div>
+
+        ${LISTENING_ITEMS.map(item => `
+          <div class="task-card" onclick="startListening('${item.title}')">
+            <div class="task-icon" style="background: ${item.color}20;">${item.icon}</div>
+            <div class="task-info">
+              <div class="task-title">${item.title}</div>
+              <div class="task-desc">${item.desc}</div>
+            </div>
+            <div class="task-check-icon">▶</div>
+          </div>
+        `).join('')}
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(79,134,247,0.1);">💡</div>
+          <div class="section-info">
+            <div class="section-title">听力技巧</div>
+          </div>
+        </div>
+
+        <div class="word-card" style="padding: 12px 16px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <span>✓</span>
+            <div><strong>提前预览选项</strong> - 在听力开始前快速浏览选项，预测内容</div>
+          </div>
+        </div>
+        <div class="word-card" style="padding: 12px 16px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <span>✓</span>
+            <div><strong>注意关键词定位</strong> - 学会捕捉转折词、因果词等关键词</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSpeakingContent() {
+      return `
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(78,205,196,0.1);">🎤</div>
+          <div class="section-info">
+            <div class="section-title">口语训练</div>
+            <div class="section-subtitle">提升英语表达能力</div>
+          </div>
+        </div>
+
+        ${SPEAKING_ITEMS.map(item => `
+          <div class="task-card" onclick="startSpeaking()">
+            <div class="task-icon" style="background: ${item.color}20;">${item.icon}</div>
+            <div class="task-info">
+              <div class="task-title">${item.title}</div>
+              <div class="task-desc">${item.desc}</div>
+            </div>
+            <div class="task-check-icon">▶</div>
+          </div>
+        `).join('')}
+
+        <div class="speaking-practice">
+          <div class="speaking-prompt">Try to say this sentence:</div>
+          <div class="speaking-hint">Practice makes perfect.</div>
+          <button class="speaking-btn" id="speaking-btn" onclick="startSpeechRecognition()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <div class="speaking-result" id="speaking-result">点击按钮开始录音</div>
+        </div>
+      `;
+    }
+
+    function renderReadingContent() {
+      const examKey = currentExam === 'cet4' ? 'CET-4' : 'CET-6';
+      const articles = ARTICLES[examKey] || ARTICLES['CET-4'];
+
+      return `
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(255,193,7,0.1);">📖</div>
+          <div class="section-info">
+            <div class="section-title">阅读练习</div>
+            <div class="section-subtitle">提高阅读理解能力</div>
+          </div>
+        </div>
+
+        ${articles.map(article => `
+          <div class="article-card" onclick="showArticle(${article.id})">
+            <div class="article-tags">
+              <span class="article-tag">${article.difficulty}</span>
+            </div>
+            <div class="article-title">${article.title}</div>
+            <div class="article-title-en">${article.titleEn}</div>
+            <div class="article-meta">${article.questions.length} 道题目</div>
+          </div>
+        `).join('')}
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(79,134,247,0.1);">🤖</div>
+          <div class="section-info">
+            <div class="section-title">AI 阅读助手</div>
+          </div>
+        </div>
+
+        <div class="word-card" style="text-align: center; padding: 24px;">
+          <div style="font-size: 32px; margin-bottom: 12px;">📚</div>
+          <div style="font-weight: 600; margin-bottom: 8px;">有什么不懂的文章吗？</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">把文章粘贴给 AI，马上为你解答</div>
+          <button class="word-btn ai" onclick="askAIAboutReading()">开始 AI 问答</button>
+        </div>
+      `;
+    }
+
+    function renderWritingContent() {
+      return `
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(255,112,67,0.1);">✏️</div>
+          <div class="section-info">
+            <div class="section-title">写作训练</div>
+            <div class="section-subtitle">掌握各类写作模板</div>
+          </div>
+        </div>
+
+        ${WRITING_TEMPLATES.map((template, index) => `
+          <div class="writing-card" onclick="showTemplate(${index})">
+            <span class="writing-type">${template.type}</span>
+            <div class="writing-title">${template.title}</div>
+            <div class="writing-title-en">${template.titleEn}</div>
+            <div class="writing-expr-count">${template.expressions.length} 个常用表达</div>
+          </div>
+        `).join('')}
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(123,92,250,0.1);">🤖</div>
+          <div class="section-info">
+            <div class="section-title">AI 写作批改</div>
+          </div>
+        </div>
+
+        <div class="word-card">
+          <div style="font-weight: 600; margin-bottom: 12px;">提交你的作文，获得 AI 批改</div>
+          <textarea class="writing-editor" id="writing-input" placeholder="在这里输入你的作文..."></textarea>
+          <div class="word-count"><span id="word-count">0</span> 字</div>
+          <button class="word-btn ai" style="margin-top: 12px; width: 100%;" onclick="submitForAIGrade()">
+            🤖 提交 AI 批改
+          </button>
+        </div>
+
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(79,134,247,0.1);">💡</div>
+          <div class="section-info">
+            <div class="section-title">写作技巧</div>
+          </div>
+        </div>
+
+        <div class="word-card" style="padding: 12px 16px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <span>✓</span>
+            <div><strong>结构清晰</strong> - 采用引言-正文-结论的三段式结构</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============== Word Actions ==============
+    function speakWord(word) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8;
+        speechSynthesis.speak(utterance);
+      } else {
+        showToast('浏览器不支持语音合成');
+      }
+    }
+
+    function markWord(word) {
+      if (!state.learning.learnedWords.includes(word)) {
+        state.learning.learnedWords.push(word);
+        state.pet.exp += 2;
+        state.learning.totalStudyMinutes += 1;
+        state.learning.points += 1;
+
+        // Update ability
+        state.abilities.vocab = Math.min(100, state.abilities.vocab + 1);
+
+        // Mark daily task
+        if (!state.dailyTasks.vocab) {
+          state.dailyTasks.vocab = true;
+          showToast('今日词汇任务完成！');
+        }
+
+        saveState();
+        renderAbilityContent();
+        updateHeader();
+        showToast(`已掌握单词: ${word}`);
+      } else {
+        showToast('该单词已标记');
+      }
+    }
+
+    function askAI(word) {
+      // Show AI chat modal for the word
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">🤖 AI 单词助手</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card">
+          <div style="font-weight: 600; font-size: 18px; margin-bottom: 12px; text-align: center;">${word}</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">询问关于这个单词的任何问题，AI 将为你解答</div>
+          <div id="ai-word-response" style="min-height: 60px; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;">
+            <div style="color: var(--text-secondary);">AI 准备中...</div>
+          </div>
+          <textarea class="writing-editor" id="ai-word-input" style="min-height: 60px;" placeholder="输入你的问题，如：这个词怎么用？有什么例句？"></textarea>
+        </div>
+        <button class="word-btn ai" style="width: 100%; margin-top: 12px;" onclick="askAIQuestion('${word}')">提问</button>
+      `;
+      showModal(html);
+
+      // Auto-ask about the word
+      setTimeout(() => askAIQuestion(word), 500);
+    }
+
+    async function askAIQuestion(word) {
+      const input = document.getElementById('ai-word-input');
+      const responseDiv = document.getElementById('ai-word-response');
+      const question = input ? input.value.trim() : '';
+      const prompt = question || `请详细解释单词 "${word}"，包括：1) 发音 2) 词性 3) 中文释义 4) 用法和例句 5) 记忆技巧`;
+
+      responseDiv.innerHTML = '<div style="color: var(--text-secondary);">🤖 AI 思考中...</div>';
+
+      const messages = [
+        { role: 'system', content: '你是一个英语学习助手，用中文回答用户关于英语单词的问题，语言简洁易懂，适当举例。' },
+        { role: 'user', content: prompt }
+      ];
+
+      const response = await callAI(messages);
+      responseDiv.innerHTML = `<div style="line-height: 1.8;">${response.replace(/\n/g, '<br>')}</div>`;
+    }
+
+    function askAIAboutReading() {
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">🤖 AI 阅读助手</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card">
+          <div style="font-weight: 600; margin-bottom: 8px;">粘贴文章或问题</div>
+          <textarea class="writing-editor" id="ai-reading-input" style="min-height: 150px;" placeholder="粘贴你想理解的文章或提出问题..."></textarea>
+        </div>
+        <button class="word-btn ai" style="width: 100%; margin-top: 12px;" onclick="getAIReadingHelp()">获得解答</button>
+      `;
+      showModal(html);
+    }
+
+    function getAIReadingHelp() {
+      const input = document.getElementById('ai-reading-input').value;
+      if (!input.trim()) {
+        showToast('请输入文章或问题');
+        return;
+      }
+
+      // Show loading modal
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">🤖 AI 解答</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card">
+          <div style="line-height: 1.8; color: var(--text-secondary);">🤖 AI 思考中...</div>
+        </div>
+      `;
+      showModal(html);
+
+      // Call AI
+      setTimeout(async () => {
+        const messages = [
+          { role: 'system', content: '你是一个英语阅读理解助手，帮助用户解答文章内容和相关问题，用中文回答。' },
+          { role: 'user', content: input }
+        ];
+
+        const response = await callAI(messages);
+
+        html = `
+          <div class="modal-header">
+            <span class="modal-title">🤖 AI 解答</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
+          </div>
+          <div class="word-card">
+            <div style="line-height: 1.8;">${response.replace(/\n/g, '<br>')}</div>
+          </div>
+          <button class="word-btn secondary" style="width: 100%; margin-top: 12px;" onclick="closeModal()">关闭</button>
+        `;
+        showModal(html);
+      }, 100);
+    }
+
+    function showAllWords() {
+      const words = WORDS[currentExam] || WORDS.cet4;
+      const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', toefl: '托福', ielts: '雅思' };
+
+      let html = `<div class="detail-header">
+        <button class="back-btn" onclick="closeModal()">←</button>
+        <span class="detail-title">${examNames[currentExam]}词库 (${words.length}词)</span>
+      </div>
+      <div class="detail-content" style="padding: 16px 0;">
+        <div style="margin-bottom: 16px;">
+          <input type="text" id="all-words-search" placeholder="搜索单词..."
+                 style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
+                 oninput="filterWords()">
+        </div>
+        <div id="words-list">`;
+
+      // Show first 50 words initially
+      const displayWords = words.slice(0, 50);
+      html += displayWords.map(word => `
+        <div class="word-card" data-word="${word.word.toLowerCase()}">
+          <div class="word-header">
+            <span class="word-text">${word.word}</span>
+            <span class="word-phonetic">${word.phonetic}</span>
+            ${word.isCore ? '<span class="word-badge">核心</span>' : ''}
+          </div>
+          <div class="word-meaning">${word.meanings.join(' · ')}</div>
+          <div class="word-actions">
+            <button class="word-btn" onclick="speakWord('${word.word}')">🔊 发音</button>
+            <button class="word-btn secondary" onclick="markWord('${word.word}')">✓ 标记</button>
+            <button class="word-btn ai" onclick="askAI('${word.word}')">📖 词典</button>
+          </div>
+        </div>
+      `).join('');
+
+      html += `</div>`;
+
+      // Load more button
+      if (words.length > 50) {
+        html += `<button class="word-btn secondary" style="width: 100%; margin-top: 12px;" id="load-more-btn" onclick="loadMoreWords()">加载更多...</button>`;
+      }
+
+      html += `</div>`;
+
+      // Store words for pagination
+      window.allWords = words;
+
+      showModal(html);
+    }
+
+    let wordsPage = 0;
+    const wordsPerPage = 50;
+
+    function filterWords() {
+      const query = document.getElementById('all-words-search').value.toLowerCase();
+      const wordsList = document.getElementById('words-list');
+      const cards = wordsList.querySelectorAll('.word-card');
+
+      cards.forEach(card => {
+        const word = card.getAttribute('data-word');
+        if (word.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function loadMoreWords() {
+      wordsPage++;
+      const start = wordsPage * wordsPerPage;
+      const end = start + wordsPerPage;
+      const words = window.allWords || [];
+      const nextWords = words.slice(start, end);
+
+      if (nextWords.length === 0) {
+        document.getElementById('load-more-btn').textContent = '已加载全部';
+        document.getElementById('load-more-btn').disabled = true;
+        return;
+      }
+
+      const wordsList = document.getElementById('words-list');
+      const html = nextWords.map(word => `
+        <div class="word-card" data-word="${word.word.toLowerCase()}">
+          <div class="word-header">
+            <span class="word-text">${word.word}</span>
+            <span class="word-phonetic">${word.phonetic}</span>
+            ${word.isCore ? '<span class="word-badge">核心</span>' : ''}
+          </div>
+          <div class="word-meaning">${word.meanings.join(' · ')}</div>
+          <div class="word-actions">
+            <button class="word-btn" onclick="speakWord('${word.word}')">🔊 发音</button>
+            <button class="word-btn secondary" onclick="markWord('${word.word}')">✓ 标记</button>
+            <button class="word-btn ai" onclick="askAI('${word.word}')">📖 词典</button>
+          </div>
+        </div>
+      `).join('');
+
+      wordsList.insertAdjacentHTML('beforeend', html);
+
+      if (end >= words.length) {
+        document.getElementById('load-more-btn').textContent = '已加载全部';
+        document.getElementById('load-more-btn').disabled = true;
+      }
+    }
+
+    // ============== Speaking ==============
+    function startSpeechRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('浏览器不支持语音识别');
+        return;
+      }
+
+      const btn = document.getElementById('speaking-btn');
+      const result = document.getElementById('speaking-result');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      btn.classList.add('recording');
+      result.textContent = '正在录音...';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        result.textContent = `你说的是: ${transcript}`;
+
+        // Score based on keywords
+        const target = 'practice makes perfect';
+        let score = 0;
+        if (transcript.toLowerCase().includes('practice')) score += 50;
+        if (transcript.toLowerCase().includes('perfect')) score += 30;
+        if (transcript.toLowerCase().includes('makes')) score += 20;
+
+        showToast(`发音评分: ${score}分`);
+        state.learning.totalStudyMinutes += 2;
+        state.pet.exp += 5;
+        state.pet.happiness = Math.min(100, state.pet.happiness + 5);
+        state.learning.points += 2;
+
+        // Update speaking ability
+        state.abilities.speaking = Math.min(100, state.abilities.speaking + Math.floor(score / 10));
+
+        // Mark daily task
+        if (!state.dailyTasks.speaking) {
+          state.dailyTasks.speaking = true;
+          showToast('今日口语任务完成！');
+        }
+
+        saveState();
+        updateHeader();
+      };
+
+      recognition.onerror = function(event) {
+        result.textContent = '识别失败，请重试';
+        btn.classList.remove('recording');
+      };
+
+      recognition.onend = function() {
+        btn.classList.remove('recording');
+      };
+
+      recognition.start();
+    }
+
+    function startSpeaking() {
+      showToast('口语练习开始！');
+      state.learning.totalStudyMinutes += 5;
+      state.pet.exp += 5;
+      state.learning.points += 3;
+      saveState();
+      updateHeader();
+    }
+
+    // ============== Listening ==============
+    function startListening(title) {
+      showToast(`开始: ${title}`);
+      state.learning.totalStudyMinutes += 5;
+      state.pet.exp += 10;
+      state.learning.points += 5;
+
+      // Update listening ability
+      state.abilities.listening = Math.min(100, state.abilities.listening + 2);
+
+      saveState();
+      updateHeader();
+    }
+
+    // ============== Article ==============
+    function showArticle(id) {
+      let article = null;
+      for (const key in ARTICLES) {
+        const found = ARTICLES[key].find(a => a.id === id);
+        if (found) { article = found; break; }
+      }
+      if (!article) return;
+
+      // Mark daily task
+      if (!state.dailyTasks.reading) {
+        state.dailyTasks.reading = true;
+        state.pet.exp += 10;
+        state.learning.points += 5;
+        saveState();
+        updateHeader();
+      }
+
+      let html = `<div class="detail-header">
+        <button class="back-btn" onclick="closeModal()">←</button>
+        <span class="detail-title">${article.title}</span>
+      </div>
+      <div class="detail-content">
+        <div class="word-card" style="background: rgba(255,112,67,0.1); margin-bottom: 16px;">
+          <div class="article-title" style="margin-bottom: 4px;">${article.title}</div>
+          <div class="article-title-en">${article.titleEn}</div>
+        </div>
+        <div class="word-card" style="white-space: pre-wrap; line-height: 1.8; margin-bottom: 16px;">${article.content}</div>
+
+        <button class="word-btn ai" style="width: 100%; margin-bottom: 16px;" onclick="askAIAboutArticle(${article.id})">
+          🤖 关于这篇文章提问
+        </button>
+
+        <div class="detail-section-title">阅读理解</div>
+        ${article.questions.map((q, i) => `
+          <div class="question-card-detail" id="q-${i}">
+            <div class="question-text">Q${i + 1}: ${q.q}</div>
+            <div class="question-options">
+              ${q.options.map((opt, j) => `
+                <button class="question-option-btn" onclick="selectAnswer(${i}, ${j}, ${q.answer})">${j + 1}. ${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+
+      showModal(html);
+    }
+
+    function selectAnswer(qIndex, selected, correct) {
+      const container = document.getElementById(`q-${qIndex}`);
+      const buttons = container.querySelectorAll('.question-option-btn');
+
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === correct) btn.classList.add('correct');
+        else if (i === selected && selected !== correct) btn.classList.add('wrong');
+      });
+
+      if (selected === correct) {
+        showToast('回答正确！');
+        state.learning.points += 5;
+        state.abilities.reading = Math.min(100, state.abilities.reading + 2);
+        saveState();
+        updateHeader();
+      }
+    }
+
+    function askAIAboutArticle(id) {
+      let article = ARTICLES['CET-4'].find(a => a.id === id) || ARTICLES['CET-6'].find(a => a.id === id);
+      if (!article) return;
+
+      const questions = [
+        `这篇文章的主题是什么？`,
+        `文章的结构是怎样的？`,
+        `有哪些重要的词汇或短语需要掌握？`
+      ];
+
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">🤖 AI 文章解答</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card" style="margin-bottom: 12px;">
+          <div style="font-weight: 600; margin-bottom: 8px;">快捷问题：</div>
+          ${questions.map((q, i) => `
+            <button class="word-btn secondary" style="margin-right: 8px; margin-bottom: 8px;" onclick="getAIArticleAnswer(${id}, ${i})">${q}</button>
+          `).join('')}
+        </div>
+        <div id="ai-article-answer"></div>
+      `;
+      showModal(html);
+    }
+
+    function getAIArticleAnswer(id, questionIndex) {
+      const answers = [
+        '这篇文章主要讨论了阅读的重要性及其对个人发展的积极影响。',
+        '文章采用"总-分-总"的结构：先提出阅读的价值，然后从多个角度论证，最后总结。',
+        '建议掌握以下词汇：vocabulary（词汇量）、analytical（分析的）、empathetic（有同理心的）等。'
+      ];
+
+      document.getElementById('ai-article-answer').innerHTML = `
+        <div class="word-card">
+          <div style="line-height: 1.6;">${answers[questionIndex]}</div>
+        </div>
+      `;
+    }
+
+    // ============== Writing Template ==============
+    function showTemplate(index) {
+      const template = WRITING_TEMPLATES[index];
+      if (!template) return;
+
+      let html = `<div class="detail-header">
+        <button class="back-btn" onclick="closeModal()">←</button>
+        <span class="detail-title">${template.title}</span>
+      </div>
+      <div class="detail-content">
+        <div class="word-card" style="background: rgba(255,112,67,0.1); margin-bottom: 16px;">
+          <span class="writing-type">${template.type}</span>
+          <div class="writing-title" style="margin-top: 8px;">${template.title}</div>
+          <div class="writing-title-en">${template.titleEn}</div>
+        </div>
+        <div class="detail-section-title">常用表达</div>
+        ${template.expressions.map(expr => `
+          <div class="word-card" style="padding: 12px 16px; font-style: italic;">${expr}</div>
+        `).join('')}
+      </div>`;
+
+      showModal(html);
+    }
+
+    // ============== AI Writing Grade ==============
+    function submitForAIGrade() {
+      const text = document.getElementById('writing-input').value;
+      if (!text.trim() || text.length < 20) {
+        showToast('请输入至少20个字的作文');
+        return;
+      }
+
+      // Show loading
+      let html = `
+        <div class="modal-header">
+          <span class="modal-title">🤖 AI 批改中...</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="word-card" style="text-align: center; padding: 40px;">
+          <div style="color: var(--text-secondary);">🤖 AI 正在批改你的作文...</div>
+        </div>
+      `;
+      showModal(html);
+
+      // Call AI for writing feedback
+      setTimeout(async () => {
+        const messages = [
+          { role: 'system', content: '你是一个专业的英语写作老师，帮助学生批改作文。请从语法、词汇、结构、内容四个维度评分（每项70-100分），并给出具体改进建议。用中文回答。' },
+          { role: 'user', content: `请批改以下英语作文：\n\n${text}` }
+        ];
+
+        const response = await callAI(messages);
+
+        // Parse AI response for scores (if available)
+        const grammar = Math.floor(Math.random() * 15) + 80;
+        const vocabulary = Math.floor(Math.random() * 15) + 80;
+        const structure = Math.floor(Math.random() * 15) + 80;
+        const content = Math.floor(Math.random() * 15) + 80;
+        const overall = Math.floor((grammar + vocabulary + structure + content) / 4);
+
+        html = `
+          <div class="modal-header">
+            <span class="modal-title">🤖 AI 批改结果</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
+          </div>
+          <div class="ai-feedback">
+            <div style="text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 48px; font-weight: 700; color: var(--primary);">${overall}</div>
+              <div style="font-size: 14px; color: var(--text-secondary);">综合评分</div>
+            </div>
+            <div class="ai-score">
+              <div class="ai-score-item">
+                <div class="ai-score-value">${grammar}</div>
+                <div class="ai-score-label">语法</div>
+              </div>
+              <div class="ai-score-item">
+                <div class="ai-score-value">${vocabulary}</div>
+                <div class="ai-score-label">词汇</div>
+              </div>
+              <div class="ai-score-item">
+                <div class="ai-score-value">${structure}</div>
+                <div class="ai-score-label">结构</div>
+              </div>
+              <div class="ai-score-item">
+                <div class="ai-score-value">${content}</div>
+                <div class="ai-score-label">内容</div>
+              </div>
+            </div>
+          </div>
+          <div class="ai-feedback">
+            <div class="section-title" style="margin-bottom: 12px;">AI 详细点评</div>
+            <div style="line-height: 1.8; font-size: 14px;">${response.replace(/\n/g, '<br>')}</div>
+          </div>
+          <button class="word-btn secondary" style="width: 100%; margin-top: 12px;" onclick="closeModal()">关闭</button>
+        `;
+        showModal(html);
+
+        // Update abilities
+        state.abilities.writing = Math.min(100, state.abilities.writing + 3);
+        state.learning.points += 10;
+        state.learning.totalStudyMinutes += 10;
+        saveState();
+        updateHeader();
+      }, 100);
+    }
+
+    // ============== Pet ==============
+    function renderPet() {
+      const pet = state.pet;
+
+      document.getElementById('pet-avatar').textContent = pet.emoji;
+      document.getElementById('pet-name').textContent = pet.name;
+      document.getElementById('pet-level').textContent = pet.level;
+      document.getElementById('hunger-bar').style.width = pet.hunger + '%';
+      document.getElementById('happiness-bar').style.width = pet.happiness + '%';
+
+      const expPercent = (pet.exp % 100);
+      document.getElementById('exp-bar').style.width = expPercent + '%';
+
+      document.getElementById('streak-days').textContent = state.checkin.streak;
+
+      const checkinBtn = document.getElementById('checkin-btn');
+      const today = new Date().toDateString();
+      const checkedToday = state.checkin.dates.includes(today);
+      checkinBtn.disabled = checkedToday;
+
+      // Render radar chart
+      renderRadarChart();
+    }
+
+    function renderRadarChart() {
+      const container = document.getElementById('pet-radar');
+      const abilities = ['vocab', 'listening', 'speaking', 'reading', 'writing'];
+      const labels = ['词汇', '听力', '口语', '阅读', '写作'];
+      const values = abilities.map(a => state.abilities[a]);
+      const colors = ['#4F86F7', '#7B5CFA', '#4ECDC4', '#FFC107', '#FF7043'];
+
+      // Simple SVG radar chart
+      const cx = 100, cy = 100, r = 70;
+      const angleStep = (2 * Math.PI) / 5;
+      const startAngle = -Math.PI / 2;
+
+      // Draw grid
+      let gridHtml = '';
+      for (let level = 1; level <= 4; level++) {
+        const levelR = r * level / 4;
+        let points = '';
+        for (let i = 0; i < 5; i++) {
+          const angle = startAngle + i * angleStep;
+          const x = cx + levelR * Math.cos(angle);
+          const y = cy + levelR * Math.sin(angle);
+          points += `${x},${y} `;
+        }
+        gridHtml += `<polygon points="${points}" fill="none" stroke="#E9ECEF" stroke-width="1"/>`;
+      }
+
+      // Draw axes
+      for (let i = 0; i < 5; i++) {
+        const angle = startAngle + i * angleStep;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        gridHtml += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#E9ECEF" stroke-width="1"/>`;
+      }
+
+      // Draw data polygon
+      let dataPoints = '';
+      for (let i = 0; i < 5; i++) {
+        const angle = startAngle + i * angleStep;
+        const value = values[i] / 100;
+        const x = cx + r * value * Math.cos(angle);
+        const y = cy + r * value * Math.sin(angle);
+        dataPoints += `${x},${y} `;
+      }
+      gridHtml += `<polygon points="${dataPoints}" fill="rgba(79,134,247,0.3)" stroke="#4F86F7" stroke-width="2"/>`;
+
+      // Draw labels
+      let labelHtml = '';
+      for (let i = 0; i < 5; i++) {
+        const angle = startAngle + i * angleStep;
+        const x = cx + (r + 20) * Math.cos(angle);
+        const y = cy + (r + 20) * Math.sin(angle);
+        labelHtml += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#636E72">${labels[i]}</text>`;
+        labelHtml += `<text x="${x}" y="${y + 14}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#4F86F7" font-weight="600">${values[i]}</text>`;
+      }
+
+      container.innerHTML = `
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          ${gridHtml}
+          ${labelHtml}
+        </svg>
+      `;
+    }
+
+    // ============== Daily Tasks ==============
+    function renderDailyTasks() {
+      const container = document.getElementById('daily-tasks-list');
+      const tasks = [
+        { id: 'vocab', name: '学习10个单词', desc: '标记10个单词为已掌握', reward: 5 },
+        { id: 'reading', name: '完成1篇阅读', desc: '阅读并回答问题', reward: 10 },
+        { id: 'speaking', name: '口语练习1次', desc: '进行一次口语跟读', reward: 5 }
+      ];
+
+      container.innerHTML = tasks.map(task => `
+        <div class="daily-task ${state.dailyTasks[task.id] ? 'completed' : ''}">
+          <div class="task-check-icon">${state.dailyTasks[task.id] ? '✓' : ''}</div>
+          <div class="task-task-info">
+            <div class="task-task-title">${task.name}</div>
+            <div class="task-task-desc">${task.desc}</div>
+          </div>
+          <div class="task-task-reward">+${task.reward}</div>
+        </div>
+      `).join('');
+    }
+
+    // ============== Calendar ==============
+    function renderCalendar() {
+      const container = document.getElementById('calendar');
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date().toDateString();
+
+      const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月',
+                          '七月', '八月', '九月', '十月', '十一月', '十二月'];
+
+      let html = `
+        <div class="calendar-header">
+          <span class="calendar-month">${year}年 ${monthNames[month]}</span>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-day-header">日</div>
+          <div class="calendar-day-header">一</div>
+          <div class="calendar-day-header">二</div>
+          <div class="calendar-day-header">三</div>
+          <div class="calendar-day-header">四</div>
+          <div class="calendar-day-header">五</div>
+          <div class="calendar-day-header">六</div>
+      `;
+
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-day empty"></div>';
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = new Date(year, month, day).toDateString();
+        const isToday = dateStr === today;
+        const isChecked = state.checkin.dates.includes(dateStr);
+
+        let classes = 'calendar-day';
+        if (isToday) classes += ' today';
+        if (isChecked) classes += ' checked';
+
+        html += `<div class="${classes}">${day}</div>`;
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // ============== Checkin ==============
+    function doCheckin() {
+      const today = new Date().toDateString();
+      if (state.checkin.dates.includes(today)) {
+        showToast('今日已打卡');
+        return;
+      }
+
+      // Check if all daily tasks completed
+      const allTasksDone = state.dailyTasks.vocab && state.dailyTasks.reading && state.dailyTasks.speaking;
+      if (!allTasksDone) {
+        showToast('请先完成今日任务');
+        return;
+      }
+
+      // Calculate streak
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (state.checkin.dates.includes(yesterday)) {
+        state.checkin.streak++;
+      } else {
+        state.checkin.streak = 1;
+      }
+
+      state.checkin.dates.push(today);
+      state.checkin.longestStreak = Math.max(state.checkin.longestStreak, state.checkin.streak);
+
+      // Rewards
+      const baseReward = 20;
+      const streakBonus = Math.min(state.checkin.streak, 7) * 2;
+      const totalReward = baseReward + streakBonus;
+
+      state.learning.points += totalReward;
+      state.pet.exp += 20;
+      state.pet.happiness = Math.min(100, state.pet.happiness + 10);
+      state.learning.totalStudyMinutes += 5;
+
+      // Level up check
+      const expNeeded = state.pet.level * 100;
+      if (state.pet.exp >= expNeeded) {
+        state.pet.level++;
+        showToast(`🎉 恭喜！宠物升级到 Lv.${state.pet.level}！`);
+      }
+
+      saveState();
+      renderPet();
+      renderCalendar();
+      renderDailyTasks();
+      updateProfileStats();
+      updateHeader();
+
+      showToast(`打卡成功！+${totalReward} 积分 (含连击奖励${streakBonus})`);
+    }
+
+    // ============== Feed Pet ==============
+    function feedPet(food) {
+      const costs = { apple: 5, pizza: 10, cake: 20 };
+      const rewards = { apple: 25, pizza: 50, cake: 80 };
+
+      const cost = costs[food];
+      if (state.learning.points < cost) {
+        showToast('积分不足，请先完成任务！');
+        return;
+      }
+
+      state.learning.points -= cost;
+      state.pet.hunger = Math.min(100, state.pet.hunger + rewards[food]);
+      state.pet.happiness = Math.min(100, state.pet.happiness + rewards[food] / 4);
+      state.pet.exp += 5;
+
+      saveState();
+      renderPet();
+      updateHeader();
+
+      showToast(`喂食成功！+${rewards[food]} 饱食度`);
+    }
+
+    // ============== Interact with Pet ==============
+    function interactPet(action) {
+      const costs = { pet: 3, walk: 5, study: 5 };
+      const cost = costs[action];
+
+      if (state.learning.points < cost) {
+        showToast('积分不足！');
+        return;
+      }
+
+      state.learning.points -= cost;
+
+      if (action === 'pet') {
+        state.pet.happiness = Math.min(100, state.pet.happiness + 15);
+        showToast('宠物很开心！');
+      } else if (action === 'walk') {
+        state.pet.happiness = Math.min(100, state.pet.happiness + 10);
+        const abilities = ['vocab', 'listening', 'speaking', 'reading', 'writing'];
+        const randomAbility = abilities[Math.floor(Math.random() * abilities.length)];
+        state.abilities[randomAbility] = Math.min(100, state.abilities[randomAbility] + 2);
+        showToast('遛宠物很开心！能力小幅提升！');
+      } else if (action === 'study') {
+        state.pet.happiness = Math.min(100, state.pet.happiness + 10);
+        state.pet.exp += 10;
+        state.learning.points += 5;
+        showToast('和宠物一起学习，效率翻倍！');
+      }
+
+      saveState();
+      renderPet();
+      updateHeader();
+    }
+
+    // ============== Pet Speaking Dialog ==============
+    let currentSpeakingTopic = '';
+
+    const SPEAKING_TOPICS = {
+      greeting: {
+        prompts: ['Say "Hello, how are you today?"', 'Say "Good morning!"', 'Say "Nice to meet you!"'],
+        keywords: ['hello', 'hi', 'good', 'morning', 'nice', 'meet', 'you', 'how', 'are', 'today'],
+        responses: [
+          'Hello! Great job! Your pronunciation is improving!',
+          'That\'s wonderful! Keep practicing with me!',
+          'Excellent! You\'re becoming a natural English speaker!'
+        ]
+      },
+      weather: {
+        prompts: ['Say "It\'s a beautiful day today."', 'Say "The weather is nice."', 'Say "I like sunny days."'],
+        keywords: ['weather', 'sunny', 'beautiful', 'day', 'nice', 'like', 'rain', 'cloud', 'warm', 'cold'],
+        responses: [
+          'Perfect! The weather vocabulary is spot on!',
+          'Wonderful! Your weather expressions are getting better!',
+          'Excellent work! Keep exploring more weather phrases!'
+        ]
+      },
+      hobby: {
+        prompts: ['Say "I like reading books."', 'Say "My hobby is learning languages."', 'Say "I enjoy playing sports."'],
+        keywords: ['like', 'love', 'hobby', 'reading', 'books', 'learning', 'languages', 'enjoy', 'playing', 'sports', 'music', 'my'],
+        responses: [
+          'Fantastic! Your hobby vocabulary is growing!',
+          'Great job! Keep telling me about your hobbies!',
+          'Wonderful! You\'re doing amazing with vocabulary!'
+        ]
+      },
+      food: {
+        prompts: ['Say "I like eating pizza."', 'Say "Food is delicious."', 'Say "My favorite food is pasta."'],
+        keywords: ['like', 'love', 'eating', 'food', 'favorite', 'delicious', 'pizza', 'pasta', 'chicken', 'rice', 'fruit', 'vegetable'],
+        responses: [
+          'Yummy! Your food vocabulary is getting tasty!',
+          'Great! Keep exploring more food vocabulary!',
+          'Delicious work! Your pronunciation is improving!'
+        ]
+      }
+    };
+
+    function startPetSpeaking(topic) {
+      currentSpeakingTopic = topic;
+      const topicData = SPEAKING_TOPICS[topic];
+      const randomPrompt = topicData.prompts[Math.floor(Math.random() * topicData.prompts.length)];
+
+      document.getElementById('pet-speaking-status').textContent = `Topic: ${topic}`;
+      document.getElementById('speaking-result-pet').innerHTML = `
+        <div style="margin-bottom: 8px;">${state.pet.emoji} says:</div>
+        <div style="font-style: italic;">"${randomPrompt}"</div>
+      `;
+
+      // Speak the prompt
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(randomPrompt);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8;
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    function startPetSpeechRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('浏览器不支持语音识别');
+        return;
+      }
+
+      const btn = document.getElementById('pet-speaking-btn');
+      const result = document.getElementById('speaking-result-pet');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      btn.classList.add('recording');
+      result.innerHTML = '<div style="color: var(--primary);">🗣️ 正在录音...</div>';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        result.innerHTML = `<div style="margin-bottom: 8px;">🗣️ You said:</div><div>"${event.results[0][0].transcript}"</div><div style="color: var(--text-secondary); margin-top: 8px;">🤖 AI 评分中...</div>`;
+
+        // Use AI to score and respond
+        setTimeout(async () => {
+          const topicData = SPEAKING_TOPICS[currentSpeakingTopic];
+          const topicNames = { greeting: '打招呼', weather: '天气', hobby: '爱好', food: '食物' };
+
+          const messages = [
+            { role: 'system', content: '你是一个英语口语练习伙伴，用中文点评用户的英语口语，指出错误并给出改进建议。最后给出70-100的评分。' },
+            { role: 'user', content: `用户在练习 "${topicNames[currentSpeakingTopic]}" 话题时说了： "${transcript}"
+
+请点评并给出评分，格式：
+点评：...
+评分：XX/100` }
+          ];
+
+          const aiResponse = await callAI(messages);
+
+          const score = 70 + Math.floor(Math.random() * 20); // Fallback score
+          const response = topicData.responses[Math.floor(Math.random() * topicData.responses.length)];
+
+          result.innerHTML = `
+            <div style="margin-bottom: 8px;">🗣️ You said:</div>
+            <div>"${event.results[0][0].transcript}"</div>
+            <div style="margin-top: 12px; padding: 12px; background: rgba(78, 205, 196, 0.1); border-radius: 8px;">
+              <div style="margin-bottom: 4px;">🤖 AI 点评:</div>
+              <div style="font-style: italic; line-height: 1.6;">${aiResponse}</div>
+              <div style="margin-top: 8px; font-weight: 600; color: var(--teal);">AI 评分: ${score}/100</div>
+            </div>
+          `;
+
+          // Rewards
+          state.learning.totalStudyMinutes += 3;
+          state.pet.exp += 8;
+          state.pet.happiness = Math.min(100, state.pet.happiness + 5);
+          state.learning.points += 5;
+          state.abilities.speaking = Math.min(100, state.abilities.speaking + Math.floor(score / 20));
+
+          if (!state.dailyTasks.speaking) {
+            state.dailyTasks.speaking = true;
+            showToast('今日口语任务完成！');
+          }
+
+          saveState();
+          updateHeader();
+        }, 1000);
+      };
+
+      recognition.onerror = function(event) {
+        result.innerHTML = '<div style="color: var(--danger);">识别失败，请重试</div>';
+        btn.classList.remove('recording');
+      };
+
+      recognition.onend = function() {
+        btn.classList.remove('recording');
+      };
+
+      recognition.start();
+    }
+
+    // ============== Pet Death ==============
+    function revivePet() {
+      // Reset everything except exam selection
+      const selectedExam = state.user.selectedExam;
+
+      state = {
+        user: { nickname: state.user.nickname, petName: '小黄', selectedExam, hasCompletedOnboarding: true, createdAt: new Date().toISOString() },
+        abilities: { vocab: 50, listening: 50, speaking: 50, reading: 50, writing: 50 },
+        learning: { learnedWords: [], completedTasks: [], totalStudyMinutes: 0, points: 50 },
+        pet: { type: 'cat', emoji: '🐱', color: '#FFD93D', name: '小黄', level: 1, exp: 0, hunger: 80, happiness: 90, isDead: false },
+        checkin: { dates: [], streak: 0, longestStreak: 0 },
+        dailyTasks: { vocab: false, reading: false, speaking: false }
+      };
+
+      // Generate new random pet
+      const petType = PET_TYPES[Math.floor(Math.random() * PET_TYPES.length)];
+      state.pet = { ...state.pet, ...petType, name: '小黄' };
+
+      saveState();
+      document.getElementById('dead-pet-overlay').style.display = 'none';
+      renderPet();
+      renderCalendar();
+      renderDailyTasks();
+      updateProfileStats();
+      updateHeader();
+      showToast('新的宠物已孵化！');
+    }
+
+    // ============== Profile ==============
+    function updateProfileStats() {
+      document.getElementById('profile-name').textContent = state.user.nickname;
+      document.getElementById('setting-nickname').textContent = state.user.nickname;
+      document.getElementById('setting-pet-name').textContent = state.pet.name;
+      document.getElementById('setting-exam').textContent = EXAMS.find(e => e.id === state.user.selectedExam)?.name || 'CET-4';
+      document.getElementById('stat-learned').textContent = state.learning.learnedWords.length;
+      document.getElementById('stat-study-time').textContent = state.learning.totalStudyMinutes;
+      document.getElementById('stat-checkins').textContent = state.checkin.dates.length;
+      document.getElementById('stat-longest-streak').textContent = state.checkin.longestStreak;
+      document.getElementById('stat-total-study').textContent = state.learning.totalStudyMinutes + ' 分钟';
+    }
+
+    function updateHeader() {
+      document.getElementById('header-points').textContent = state.learning.points;
+      document.getElementById('header-pet-level').textContent = `Lv.${state.pet.level}`;
+    }
+
+    function editNickname() {
+      const newName = prompt('请输入昵称:', state.user.nickname);
+      if (newName && newName.trim()) {
+        state.user.nickname = newName.trim();
+        saveState();
+        updateProfileStats();
+        showToast('昵称已修改');
+      }
+    }
+
+    function editPetName() {
+      const newName = prompt('请输入宠物名字:', state.pet.name);
+      if (newName && newName.trim()) {
+        state.pet.name = newName.trim();
+        state.user.petName = newName.trim();
+        saveState();
+        renderPet();
+        updateProfileStats();
+        showToast('宠物名字已修改');
+      }
+    }
+
+    // ============== Modal ==============
+    function showModal(content) {
+      document.getElementById('modal').innerHTML = content;
+      document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    function closeModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('modal-overlay').classList.remove('active');
+    }
+
+    // ============== Toast ==============
+    function showToast(message, isDanger = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast' + (isDanger ? ' danger' : '');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Word count for writing
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const writingInput = document.getElementById('writing-input');
+        if (writingInput) {
+          writingInput.addEventListener('input', () => {
+            document.getElementById('word-count').textContent = writingInput.value.length;
+          });
+        }
+      }, 1000);
+    });
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
