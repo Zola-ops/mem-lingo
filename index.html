@@ -4249,7 +4249,7 @@
     function speakWord(word) {
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-US';
+        utterance.lang = 'en-GB';
         utterance.rate = 0.8;
         speechSynthesis.speak(utterance);
       } else {
@@ -5104,7 +5104,7 @@
       // Speak the prompt
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(randomPrompt);
-        utterance.lang = 'en-US';
+        utterance.lang = 'en-GB';
         utterance.rate = 0.8;
         speechSynthesis.speak(utterance);
       }
