@@ -65,6 +65,69 @@
       gap: 12px;
     }
 
+    .exam-dropdown {
+      position: relative;
+    }
+
+    .exam-dropdown-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .exam-dropdown-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .exam-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 100;
+      min-width: 140px;
+      display: none;
+    }
+
+    .exam-dropdown-menu.show {
+      display: block;
+    }
+
+    .exam-dropdown-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .exam-dropdown-item:hover {
+      background: rgba(79, 134, 247, 0.1);
+    }
+
+    .exam-dropdown-item.selected {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .exam-dropdown-item:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .exam-dropdown-item:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
     .points-badge {
       display: flex;
       align-items: center;
@@ -315,35 +378,6 @@
 
     .ability-name { font-size: 14px; }
     .ability-value { font-weight: 600; color: var(--primary); }
-
-    /* Exam Selector */
-    .exam-selector {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 12px 0;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .exam-selector::-webkit-scrollbar { display: none; }
-
-    .exam-card {
-      flex-shrink: 0;
-      width: 100px;
-      padding: 12px;
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .exam-card.selected { border-color: var(--primary); background: rgba(79, 134, 247, 0.05); }
-    .exam-card:active { transform: scale(0.98); }
-    .exam-name { font-weight: 600; font-size: 14px; }
-    .exam-card.selected .exam-name { color: var(--primary); }
-    .exam-count { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
     /* Section Header */
     .section-header {
@@ -1245,6 +1279,13 @@
       <span>Mem-Lingo</span>
     </div>
     <div class="header-right">
+      <div class="exam-dropdown">
+        <button class="exam-dropdown-btn" onclick="toggleExamDropdown()">
+          <span id="current-exam-label">四级</span>
+          <span>▼</span>
+        </button>
+        <div class="exam-dropdown-menu" id="exam-dropdown-menu"></div>
+      </div>
       <div class="points-badge">
         <span>⭐</span>
         <span id="header-points">0</span>
@@ -1260,7 +1301,6 @@
   <main class="main-content">
     <!-- Learning Center Page -->
     <div id="page-learning" class="page active">
-      <div class="exam-selector" id="exam-selector"></div>
       <div id="ability-content"></div>
     </div>
 
@@ -2763,7 +2803,7 @@
 
       if (state.user.hasCompletedOnboarding) {
         document.getElementById('onboarding').style.display = 'none';
-        renderExamSelector();
+        renderExamDropdown();
         renderAbilityContent();
         renderPet();
         renderCalendar();
@@ -2871,7 +2911,7 @@
       state.pet = { ...state.pet, ...petType, name: '小黄' };
       saveState();
       document.getElementById('onboarding').style.display = 'none';
-      renderExamSelector();
+      renderExamDropdown();
       renderAbilityContent();
       renderPet();
       renderCalendar();
@@ -3104,7 +3144,7 @@
 
     function finishOnboarding() {
       document.getElementById('onboarding').style.display = 'none';
-      renderExamSelector();
+      renderExamDropdown();
       renderAbilityContent();
       renderPet();
       renderCalendar();
@@ -3140,25 +3180,43 @@
       }
     }
 
-    // ============== Exam Selector ==============
-    function renderExamSelector() {
-      const container = document.getElementById('exam-selector');
-      container.innerHTML = EXAMS.map(exam => `
-        <div class="exam-card ${exam.id === currentExam ? 'selected' : ''}"
+    // ============== Exam Dropdown ==============
+    function renderExamDropdown() {
+      const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', touya: '托雅' };
+      document.getElementById('current-exam-label').textContent = examNames[currentExam] || '四级';
+
+      const menu = document.getElementById('exam-dropdown-menu');
+      menu.innerHTML = EXAMS.map(exam => `
+        <div class="exam-dropdown-item ${exam.id === currentExam ? 'selected' : ''}"
              onclick="selectExam('${exam.id}')">
-          <div class="exam-name">${exam.shortName}</div>
-          <div class="exam-count">${exam.wordCount} 词</div>
+          ${exam.name}
         </div>
       `).join('');
+    }
+
+    function toggleExamDropdown() {
+      const menu = document.getElementById('exam-dropdown-menu');
+      menu.classList.toggle('show');
     }
 
     function selectExam(examId) {
       currentExam = examId;
       state.user.selectedExam = examId;
       saveState();
-      renderExamSelector();
+      renderExamDropdown();
       renderAbilityContent();
+      // Close dropdown
+      document.getElementById('exam-dropdown-menu').classList.remove('show');
     }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      const dropdown = document.querySelector('.exam-dropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        const menu = document.getElementById('exam-dropdown-menu');
+        if (menu) menu.classList.remove('show');
+      }
+    });
 
     function switchExam() {
       const examNames = { cet4: 'CET-4', cet6: 'CET-6', kaoyan: '考研', touya: '托雅' };
@@ -3181,7 +3239,7 @@
       state.user.selectedExam = examId;
       saveState();
       closeModal();
-      renderExamSelector();
+      renderExamDropdown();
       renderAbilityContent();
       document.getElementById('setting-exam').textContent = EXAMS.find(e => e.id === examId).name;
       showToast('目标考试已更新');
