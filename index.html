@@ -2225,8 +2225,8 @@
     const DEMO_GROUPS = [
       { id: 'g1', name: '四级冲刺群', desc: '每日打卡监督', members: 128, todayCheckins: 45, leader: '群主小王' },
       { id: 'g2', name: '考研英语必胜', desc: '考研词汇每日背', members: 256, todayCheckins: 89, leader: '学姐小红' },
-      { id: 'g3', name: '托福听力特训', desc: '托福听力专项练习', members: 64, todayCheckins: 23, leader: '托福达人' },
-      { id: 'g4', name: '雅思口语实战', desc: '雅思口语对练', members: 89, todayCheckins: 34, leader: '雅思7分' }
+      { id: 'g3', name: '托福词汇特训', desc: '托福词汇专项练习', members: 64, todayCheckins: 23, leader: '托福达人' },
+      { id: 'g4', name: '雅思词汇实战', desc: '雅思词汇对练', members: 89, todayCheckins: 34, leader: '雅思7分' }
     ];
 
     async function showGroups() {
@@ -3117,22 +3117,6 @@
             <span class="ability-name">📚 词汇</span>
             <span class="ability-value">${state.abilities.vocab}</span>
           </div>
-          <div class="ability-row">
-            <span class="ability-name">🎧 听力</span>
-            <span class="ability-value">${state.abilities.listening}</span>
-          </div>
-          <div class="ability-row">
-            <span class="ability-name">🎤 口语</span>
-            <span class="ability-value">${state.abilities.speaking}</span>
-          </div>
-          <div class="ability-row">
-            <span class="ability-name">📖 阅读</span>
-            <span class="ability-value">${state.abilities.reading}</span>
-          </div>
-          <div class="ability-row">
-            <span class="ability-name">✏️ 写作</span>
-            <span class="ability-value">${state.abilities.writing}</span>
-          </div>
         </div>
 
         <button class="onboarding-btn" onclick="finishOnboarding()">开始学习</button>
@@ -3145,9 +3129,9 @@
     }
 
     function renderMiniRadarChart(container) {
-      const abilities = ['vocab', 'listening', 'speaking', 'reading', 'writing'];
-      const labels = ['词汇', '听力', '口语', '阅读', '写作'];
-      const values = abilities.map(a => state.abilities[a]);
+      const abilities = ['vocab'];
+      const labels = ['词汇'];
+      const values = [state.abilities.vocab];
 
       // Simple bar chart alternative
       let html = '';
@@ -3901,64 +3885,7 @@
       responseDiv.innerHTML = `<div style="line-height: 1.8;">${response.replace(/\n/g, '<br>')}</div>`;
     }
 
-    function askAIAboutReading() {
-      let html = `
-        <div class="modal-header">
-          <span class="modal-title">🤖 AI 阅读助手</span>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="word-card">
-          <div style="font-weight: 600; margin-bottom: 8px;">粘贴文章或问题</div>
-          <textarea class="writing-editor" id="ai-reading-input" style="min-height: 150px;" placeholder="粘贴你想理解的文章或提出问题..."></textarea>
-        </div>
-        <button class="word-btn ai" style="width: 100%; margin-top: 12px;" onclick="getAIReadingHelp()">获得解答</button>
-      `;
-      showModal(html);
-    }
-
-    function getAIReadingHelp() {
-      const input = document.getElementById('ai-reading-input').value;
-      if (!input.trim()) {
-        showToast('请输入文章或问题');
-        return;
-      }
-
-      // Show loading modal
-      let html = `
-        <div class="modal-header">
-          <span class="modal-title">🤖 AI 解答</span>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="word-card">
-          <div style="line-height: 1.8; color: var(--text-secondary);">🤖 AI 思考中...</div>
-        </div>
-      `;
-      showModal(html);
-
-      // Call AI
-      setTimeout(async () => {
-        const messages = [
-          { role: 'system', content: '你是一个英语阅读理解助手，帮助用户解答文章内容和相关问题，用中文回答。' },
-          { role: 'user', content: input }
-        ];
-
-        const response = await callAI(messages);
-
-        html = `
-          <div class="modal-header">
-            <span class="modal-title">🤖 AI 解答</span>
-            <button class="modal-close" onclick="closeModal()">×</button>
-          </div>
-          <div class="word-card">
-            <div style="line-height: 1.8;">${response.replace(/\n/g, '<br>')}</div>
-          </div>
-          <button class="word-btn secondary" style="width: 100%; margin-top: 12px;" onclick="closeModal()">关闭</button>
-        `;
-        showModal(html);
-      }, 100);
-    }
-
-    function showAllWords() {
+        function showAllWords() {
       const words = WORDS[currentExam] || WORDS.cet4;
       const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', touya: '托雅' };
 
@@ -4063,305 +3990,6 @@
       }
     }
 
-    // ============== Speaking ==============
-    function startSpeechRecognition() {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showToast('浏览器不支持语音识别');
-        return;
-      }
-
-      const btn = document.getElementById('speaking-btn');
-      const result = document.getElementById('speaking-result');
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      btn.classList.add('recording');
-      result.textContent = '正在录音...';
-
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        result.textContent = `你说的是: ${transcript}`;
-
-        // Score based on keywords
-        const target = 'practice makes perfect';
-        let score = 0;
-        if (transcript.toLowerCase().includes('practice')) score += 50;
-        if (transcript.toLowerCase().includes('perfect')) score += 30;
-        if (transcript.toLowerCase().includes('makes')) score += 20;
-
-        showToast(`发音评分: ${score}分`);
-        state.learning.totalStudyMinutes += 2;
-        state.pet.exp += 5;
-        state.pet.happiness = Math.min(100, state.pet.happiness + 5);
-        state.learning.points += 2;
-
-        // Update speaking ability
-        state.abilities.speaking = Math.min(100, state.abilities.speaking + Math.floor(score / 10));
-
-        // Mark daily task
-        if (!state.dailyTasks.speaking) {
-          state.dailyTasks.speaking = true;
-          showToast('今日口语任务完成！');
-        }
-
-        saveState();
-        updateHeader();
-      };
-
-      recognition.onerror = function(event) {
-        result.textContent = '识别失败，请重试';
-        btn.classList.remove('recording');
-      };
-
-      recognition.onend = function() {
-        btn.classList.remove('recording');
-      };
-
-      recognition.start();
-    }
-
-    function startSpeaking() {
-      showToast('口语练习开始！');
-      state.learning.totalStudyMinutes += 5;
-      state.pet.exp += 5;
-      state.learning.points += 3;
-      saveState();
-      updateHeader();
-    }
-
-    // ============== Listening ==============
-    function startListening(title) {
-      showToast(`开始: ${title}`);
-      state.learning.totalStudyMinutes += 5;
-      state.pet.exp += 10;
-      state.learning.points += 5;
-
-      // Update listening ability
-      state.abilities.listening = Math.min(100, state.abilities.listening + 2);
-
-      saveState();
-      updateHeader();
-    }
-
-    // ============== Article ==============
-    function showArticle(id) {
-      let article = null;
-      for (const key in ARTICLES) {
-        const found = ARTICLES[key].find(a => a.id === id);
-        if (found) { article = found; break; }
-      }
-      if (!article) return;
-
-      // Mark daily task
-      if (!state.dailyTasks.reading) {
-        state.dailyTasks.reading = true;
-        state.pet.exp += 10;
-        state.learning.points += 5;
-        saveState();
-        updateHeader();
-      }
-
-      let html = `<div class="detail-header">
-        <button class="back-btn" onclick="closeModal()">←</button>
-        <span class="detail-title">${article.title}</span>
-      </div>
-      <div class="detail-content">
-        <div class="word-card" style="background: rgba(255,112,67,0.1); margin-bottom: 16px;">
-          <div class="article-title" style="margin-bottom: 4px;">${article.title}</div>
-          <div class="article-title-en">${article.titleEn}</div>
-        </div>
-        <div class="word-card" style="white-space: pre-wrap; line-height: 1.8; margin-bottom: 16px;">${article.content}</div>
-
-        <button class="word-btn ai" style="width: 100%; margin-bottom: 16px;" onclick="askAIAboutArticle(${article.id})">
-          🤖 关于这篇文章提问
-        </button>
-
-        <div class="detail-section-title">阅读理解</div>
-        ${article.questions.map((q, i) => `
-          <div class="question-card-detail" id="q-${i}">
-            <div class="question-text">Q${i + 1}: ${q.q}</div>
-            <div class="question-options">
-              ${q.options.map((opt, j) => `
-                <button class="question-option-btn" onclick="selectAnswer(${i}, ${j}, ${q.answer})">${j + 1}. ${opt}</button>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </div>`;
-
-      showModal(html);
-    }
-
-    function selectAnswer(qIndex, selected, correct) {
-      const container = document.getElementById(`q-${qIndex}`);
-      const buttons = container.querySelectorAll('.question-option-btn');
-
-      buttons.forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === correct) btn.classList.add('correct');
-        else if (i === selected && selected !== correct) btn.classList.add('wrong');
-      });
-
-      if (selected === correct) {
-        showToast('回答正确！');
-        state.learning.points += 5;
-        state.abilities.reading = Math.min(100, state.abilities.reading + 2);
-        saveState();
-        updateHeader();
-      }
-    }
-
-    function askAIAboutArticle(id) {
-      let article = ARTICLES['CET-4'].find(a => a.id === id) || ARTICLES['CET-6'].find(a => a.id === id);
-      if (!article) return;
-
-      const questions = [
-        `这篇文章的主题是什么？`,
-        `文章的结构是怎样的？`,
-        `有哪些重要的词汇或短语需要掌握？`
-      ];
-
-      let html = `
-        <div class="modal-header">
-          <span class="modal-title">🤖 AI 文章解答</span>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="word-card" style="margin-bottom: 12px;">
-          <div style="font-weight: 600; margin-bottom: 8px;">快捷问题：</div>
-          ${questions.map((q, i) => `
-            <button class="word-btn secondary" style="margin-right: 8px; margin-bottom: 8px;" onclick="getAIArticleAnswer(${id}, ${i})">${q}</button>
-          `).join('')}
-        </div>
-        <div id="ai-article-answer"></div>
-      `;
-      showModal(html);
-    }
-
-    function getAIArticleAnswer(id, questionIndex) {
-      const answers = [
-        '这篇文章主要讨论了阅读的重要性及其对个人发展的积极影响。',
-        '文章采用"总-分-总"的结构：先提出阅读的价值，然后从多个角度论证，最后总结。',
-        '建议掌握以下词汇：vocabulary（词汇量）、analytical（分析的）、empathetic（有同理心的）等。'
-      ];
-
-      document.getElementById('ai-article-answer').innerHTML = `
-        <div class="word-card">
-          <div style="line-height: 1.6;">${answers[questionIndex]}</div>
-        </div>
-      `;
-    }
-
-    // ============== Writing Template ==============
-    function showTemplate(index) {
-      const template = WRITING_TEMPLATES[index];
-      if (!template) return;
-
-      let html = `<div class="detail-header">
-        <button class="back-btn" onclick="closeModal()">←</button>
-        <span class="detail-title">${template.title}</span>
-      </div>
-      <div class="detail-content">
-        <div class="word-card" style="background: rgba(255,112,67,0.1); margin-bottom: 16px;">
-          <span class="writing-type">${template.type}</span>
-          <div class="writing-title" style="margin-top: 8px;">${template.title}</div>
-          <div class="writing-title-en">${template.titleEn}</div>
-        </div>
-        <div class="detail-section-title">常用表达</div>
-        ${template.expressions.map(expr => `
-          <div class="word-card" style="padding: 12px 16px; font-style: italic;">${expr}</div>
-        `).join('')}
-      </div>`;
-
-      showModal(html);
-    }
-
-    // ============== AI Writing Grade ==============
-    function submitForAIGrade() {
-      const text = document.getElementById('writing-input').value;
-      if (!text.trim() || text.length < 20) {
-        showToast('请输入至少20个字的作文');
-        return;
-      }
-
-      // Show loading
-      let html = `
-        <div class="modal-header">
-          <span class="modal-title">🤖 AI 批改中...</span>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="word-card" style="text-align: center; padding: 40px;">
-          <div style="color: var(--text-secondary);">🤖 AI 正在批改你的作文...</div>
-        </div>
-      `;
-      showModal(html);
-
-      // Call AI for writing feedback
-      setTimeout(async () => {
-        const messages = [
-          { role: 'system', content: '你是一个专业的英语写作老师，帮助学生批改作文。请从语法、词汇、结构、内容四个维度评分（每项70-100分），并给出具体改进建议。用中文回答。' },
-          { role: 'user', content: `请批改以下英语作文：\n\n${text}` }
-        ];
-
-        const response = await callAI(messages);
-
-        // Parse AI response for scores (if available)
-        const grammar = Math.floor(Math.random() * 15) + 80;
-        const vocabulary = Math.floor(Math.random() * 15) + 80;
-        const structure = Math.floor(Math.random() * 15) + 80;
-        const content = Math.floor(Math.random() * 15) + 80;
-        const overall = Math.floor((grammar + vocabulary + structure + content) / 4);
-
-        html = `
-          <div class="modal-header">
-            <span class="modal-title">🤖 AI 批改结果</span>
-            <button class="modal-close" onclick="closeModal()">×</button>
-          </div>
-          <div class="ai-feedback">
-            <div style="text-align: center; margin-bottom: 16px;">
-              <div style="font-size: 48px; font-weight: 700; color: var(--primary);">${overall}</div>
-              <div style="font-size: 14px; color: var(--text-secondary);">综合评分</div>
-            </div>
-            <div class="ai-score">
-              <div class="ai-score-item">
-                <div class="ai-score-value">${grammar}</div>
-                <div class="ai-score-label">语法</div>
-              </div>
-              <div class="ai-score-item">
-                <div class="ai-score-value">${vocabulary}</div>
-                <div class="ai-score-label">词汇</div>
-              </div>
-              <div class="ai-score-item">
-                <div class="ai-score-value">${structure}</div>
-                <div class="ai-score-label">结构</div>
-              </div>
-              <div class="ai-score-item">
-                <div class="ai-score-value">${content}</div>
-                <div class="ai-score-label">内容</div>
-              </div>
-            </div>
-          </div>
-          <div class="ai-feedback">
-            <div class="section-title" style="margin-bottom: 12px;">AI 详细点评</div>
-            <div style="line-height: 1.8; font-size: 14px;">${response.replace(/\n/g, '<br>')}</div>
-          </div>
-          <button class="word-btn secondary" style="width: 100%; margin-top: 12px;" onclick="closeModal()">关闭</button>
-        `;
-        showModal(html);
-
-        // Update abilities
-        state.abilities.writing = Math.min(100, state.abilities.writing + 3);
-        state.learning.points += 10;
-        state.learning.totalStudyMinutes += 10;
-        saveState();
-        updateHeader();
-      }, 100);
-    }
-
     // ============== Pet ==============
     function renderPet() {
       const pet = state.pet;
@@ -4388,64 +4016,17 @@
 
     function renderRadarChart() {
       const container = document.getElementById('pet-radar');
-      const abilities = ['vocab', 'listening', 'speaking', 'reading', 'writing'];
-      const labels = ['词汇', '听力', '口语', '阅读', '写作'];
-      const values = abilities.map(a => state.abilities[a]);
-      const colors = ['#4F86F7', '#7B5CFA', '#4ECDC4', '#FFC107', '#FF7043'];
-
-      // Simple SVG radar chart
-      const cx = 100, cy = 100, r = 70;
-      const angleStep = (2 * Math.PI) / 5;
-      const startAngle = -Math.PI / 2;
-
-      // Draw grid
-      let gridHtml = '';
-      for (let level = 1; level <= 4; level++) {
-        const levelR = r * level / 4;
-        let points = '';
-        for (let i = 0; i < 5; i++) {
-          const angle = startAngle + i * angleStep;
-          const x = cx + levelR * Math.cos(angle);
-          const y = cy + levelR * Math.sin(angle);
-          points += `${x},${y} `;
-        }
-        gridHtml += `<polygon points="${points}" fill="none" stroke="#E9ECEF" stroke-width="1"/>`;
-      }
-
-      // Draw axes
-      for (let i = 0; i < 5; i++) {
-        const angle = startAngle + i * angleStep;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        gridHtml += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#E9ECEF" stroke-width="1"/>`;
-      }
-
-      // Draw data polygon
-      let dataPoints = '';
-      for (let i = 0; i < 5; i++) {
-        const angle = startAngle + i * angleStep;
-        const value = values[i] / 100;
-        const x = cx + r * value * Math.cos(angle);
-        const y = cy + r * value * Math.sin(angle);
-        dataPoints += `${x},${y} `;
-      }
-      gridHtml += `<polygon points="${dataPoints}" fill="rgba(79,134,247,0.3)" stroke="#4F86F7" stroke-width="2"/>`;
-
-      // Draw labels
-      let labelHtml = '';
-      for (let i = 0; i < 5; i++) {
-        const angle = startAngle + i * angleStep;
-        const x = cx + (r + 20) * Math.cos(angle);
-        const y = cy + (r + 20) * Math.sin(angle);
-        labelHtml += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#636E72">${labels[i]}</text>`;
-        labelHtml += `<text x="${x}" y="${y + 14}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#4F86F7" font-weight="600">${values[i]}</text>`;
-      }
+      // 只显示词汇能力
+      const vocabValue = state.abilities.vocab;
 
       container.innerHTML = `
-        <svg viewBox="0 0 200 200" width="100%" height="100%">
-          ${gridHtml}
-          ${labelHtml}
-        </svg>
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; font-weight: 700; color: var(--primary);">${vocabValue}</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">词汇能力值</div>
+          <div style="margin-top: 16px; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+            <div style="width: ${vocabValue}%; height: 100%; background: var(--primary);"></div>
+          </div>
+        </div>
       `;
     }
 
@@ -4453,9 +4034,7 @@
     function renderDailyTasks() {
       const container = document.getElementById('daily-tasks-list');
       const tasks = [
-        { id: 'vocab', name: '学习10个单词', desc: '标记10个单词为已掌握', reward: 5 },
-        { id: 'reading', name: '完成1篇阅读', desc: '阅读并回答问题', reward: 10 },
-        { id: 'speaking', name: '口语练习1次', desc: '进行一次口语跟读', reward: 5 }
+        { id: 'vocab', name: '学习10个单词', desc: '标记10个单词为已掌握', reward: 5 }
       ];
 
       container.innerHTML = tasks.map(task => `
