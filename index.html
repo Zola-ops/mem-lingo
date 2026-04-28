@@ -1549,11 +1549,11 @@
   <script>
     // ============== Data ==============
     const EXAMS = [
-      { id: 'cet4', name: 'CET-4', shortName: '四级', wordCount: 4200, color: '#4F86F7' },
-      { id: 'cet6', name: 'CET-6', shortName: '六级', wordCount: 5500, color: '#7B5CFA' },
-      { id: 'kaoyan', name: '考研', shortName: '考研', wordCount: 5500, color: '#4ECDC4' },
-      { id: 'toefl', name: '托福', shortName: '托福', wordCount: 8000, color: '#FFC107' },
-      { id: 'ielts', name: '雅思', shortName: '雅思', wordCount: 7000, color: '#FF7043' }
+      { id: 'cet4', name: 'CET-4', shortName: '四级', wordCount: 4543, color: '#4F86F7' },
+      { id: 'cet6', name: 'CET-6', shortName: '六级', wordCount: 2165, color: '#7B5CFA' },
+      { id: 'kaoyan', name: '考研', shortName: '考研', wordCount: 5304, color: '#4ECDC4' },
+      { id: 'toefl', name: '托福', shortName: '托福', wordCount: 4516, color: '#FFC107' },
+      { id: 'ielts', name: '雅思', shortName: '雅思', wordCount: 4516, color: '#FF7043' }
     ];
 
     const ABILITIES = [
@@ -2808,7 +2808,7 @@
 
     // ============== Init ==============
     async function init() {
-      // Load vocabulary data
+      // Load vocabulary data first
       try {
         const response = await fetch('words.json');
         if (response.ok) {
@@ -2838,6 +2838,7 @@
               console.log(`Exam ${exam} not found in WORDS`);
             }
           });
+          vocabularyLoaded = true;
         } else {
           console.log('Failed to fetch words.json:', response.status);
         }
@@ -4692,6 +4693,9 @@
 
     // Init on load
     document.addEventListener('DOMContentLoaded', init);
+
+    // Global flag for vocabulary loaded
+    let vocabularyLoaded = false;
   </script>
 </body>
 </html>
