@@ -345,46 +345,6 @@
     .exam-card.selected .exam-name { color: var(--primary); }
     .exam-count { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
-    /* Ability Tabs */
-    .ability-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 8px 0;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .ability-tabs::-webkit-scrollbar { display: none; }
-
-    .ability-tab {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 13px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .ability-tab svg { width: 16px; height: 16px; }
-    .ability-tab.active { border-color: currentColor; }
-    .ability-tab[data-type="vocab"] { color: var(--primary); }
-    .ability-tab[data-type="listening"] { color: var(--purple); }
-    .ability-tab[data-type="speaking"] { color: var(--teal); }
-    .ability-tab[data-type="reading"] { color: var(--yellow); }
-    .ability-tab[data-type="writing"] { color: var(--orange); }
-
-    .ability-tab.active.vocab { background: rgba(79, 134, 247, 0.1); }
-    .ability-tab.active.listening { background: rgba(123, 92, 250, 0.1); }
-    .ability-tab.active.speaking { background: rgba(78, 205, 196, 0.1); }
-    .ability-tab.active.reading { background: rgba(255, 193, 7, 0.1); }
-    .ability-tab.active.writing { background: rgba(255, 112, 67, 0.1); }
-
     /* Section Header */
     .section-header {
       display: flex;
@@ -1301,7 +1261,6 @@
     <!-- Learning Center Page -->
     <div id="page-learning" class="page active">
       <div class="exam-selector" id="exam-selector"></div>
-      <div class="ability-tabs" id="ability-tabs"></div>
       <div id="ability-content"></div>
     </div>
 
@@ -2805,7 +2764,6 @@
       if (state.user.hasCompletedOnboarding) {
         document.getElementById('onboarding').style.display = 'none';
         renderExamSelector();
-        renderAbilityTabs();
         renderAbilityContent();
         renderPet();
         renderCalendar();
@@ -2914,7 +2872,6 @@
       saveState();
       document.getElementById('onboarding').style.display = 'none';
       renderExamSelector();
-      renderAbilityTabs();
       renderAbilityContent();
       renderPet();
       renderCalendar();
@@ -3148,7 +3105,6 @@
     function finishOnboarding() {
       document.getElementById('onboarding').style.display = 'none';
       renderExamSelector();
-      renderAbilityTabs();
       renderAbilityContent();
       renderPet();
       renderCalendar();
@@ -3229,25 +3185,6 @@
       renderAbilityContent();
       document.getElementById('setting-exam').textContent = EXAMS.find(e => e.id === examId).name;
       showToast('目标考试已更新');
-    }
-
-    // ============== Ability Tabs ==============
-    function renderAbilityTabs() {
-      const container = document.getElementById('ability-tabs');
-      container.innerHTML = ABILITIES.map(ability => `
-        <div class="ability-tab ${ability.id === currentAbility ? 'active' : ''}"
-             data-type="${ability.id}"
-             onclick="selectAbility('${ability.id}')">
-          <span>${ability.icon}</span>
-          <span>${ability.name}</span>
-        </div>
-      `).join('');
-    }
-
-    function selectAbility(abilityId) {
-      currentAbility = abilityId;
-      renderAbilityTabs();
-      renderAbilityContent();
     }
 
     // ============== Content Rendering ==============
