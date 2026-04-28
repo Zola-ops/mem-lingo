@@ -2808,6 +2808,36 @@
 
     // ============== Init ==============
     async function init() {
+      // Load vocabulary data
+      try {
+        const response = await fetch('words.json');
+        if (response.ok) {
+          const loadedWords = await response.json();
+          // Merge loaded words with existing WORDS
+          Object.keys(loadedWords).forEach(exam => {
+            if (WORDS[exam]) {
+              // Merge: add new words, don't duplicate
+              const existingWords = new Set(WORDS[exam].map(w => w.word));
+              loadedWords[exam].forEach(w => {
+                if (!existingWords.has(w.word)) {
+                  // Convert mahavivo format to our format
+                  WORDS[exam].push({
+                    word: w.word,
+                    phonetic: w.phonetic || '',
+                    meanings: w.meaning ? [w.meaning] : [],
+                    example: '',
+                    isCore: true
+                  });
+                }
+              });
+            }
+          });
+          console.log('Vocabulary loaded from words.json');
+        }
+      } catch (e) {
+        console.log('Failed to load words.json, using built-in vocabulary');
+      }
+
       // Initialize IndexedDB
       try {
         await initDB();
@@ -3763,10 +3793,10 @@
         <div class="word-card" data-word="${word.word.toLowerCase()}">
           <div class="word-header">
             <span class="word-text">${word.word}</span>
-            <span class="word-phonetic">${word.phonetic}</span>
+            <span class="word-phonetic">${word.phonetic || ''}</span>
             ${word.isCore ? '<span class="word-badge">核心</span>' : ''}
           </div>
-          <div class="word-meaning">${word.meanings.join(' · ')}</div>
+          <div class="word-meaning">${Array.isArray(word.meanings) ? word.meanings.join(' · ') : (word.meaning || '')}</div>
           <div class="word-actions">
             <button class="word-btn" onclick="speakWord('${word.word}')">🔊 发音</button>
             <button class="word-btn secondary" onclick="markWord('${word.word}')">✓ 标记</button>
