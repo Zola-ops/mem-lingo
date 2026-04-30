@@ -1800,10 +1800,20 @@
       { id: 'touya', name: '托雅', shortName: '托雅', color: '#FFC107' }
     ];
 
-    // Dynamic word count based on actual WORDS data
+    // 词库预计算数量（按需加载）
+    const wordCounts = {
+      cet4: 4543,
+      cet6: 2165,
+      kaoyan: 5304,
+      touya: 9032  // toefl(4516) + ielts(4516)
+    };
+
+    // Dynamic word count - 返回缓存的数量或实际已加载的数量
     function getExamWordCount(examId) {
-      const words = WORDS[examId];
-      return words ? words.length : 0;
+      if (WORDS[examId] && WORDS[examId].length > 0) {
+        return WORDS[examId].length;
+      }
+      return wordCounts[examId] || 0;
     }
 
     const ABILITIES = [
@@ -3080,39 +3090,68 @@
     }
 
     // ============== Init ==============
-    async function init() {
-      // Load vocabulary data from words.json
-      try {
-        const response = await fetch('words.json');
-        if (response.ok) {
-          const loadedWords = await response.json();
-          console.log('Loaded words from words.json:', {
-            cet4: loadedWords.cet4?.length,
-            cet6: loadedWords.cet6?.length,
-            kaoyan: loadedWords.kaoyan?.length,
-            toefl: loadedWords.toefl?.length,
-            ielts: loadedWords.ielts?.length
-          });
+    // 词库按需加载管理
+    const wordCache = {};
+    async function loadExamWords(examId) {
+      if (wordCache[examId]) return wordCache[examId];
 
-          // Directly assign loaded words to WORDS
-          WORDS.cet4 = loadedWords.cet4 || [];
-          WORDS.cet6 = loadedWords.cet6 || [];
-          WORDS.kaoyan = loadedWords.kaoyan || [];
-          // Merge TOEFL and IELTS into 托雅 (touya)
-          WORDS.touya = [...(loadedWords.toefl || []), ...(loadedWords.ielts || [])].map(w => ({
+      let fileName, keyName;
+      switch (examId) {
+        case 'cet4': fileName = 'words_cet4.json'; keyName = 'cet4'; break;
+        case 'cet6': fileName = 'words_cet6.json'; keyName = 'cet6'; break;
+        case 'kaoyan': fileName = 'words_kaoyan.json'; keyName = 'kaoyan'; break;
+        case 'touya':
+          // 托雅需要合并 toefl 和 ielts
+          const [toeflData, ieltsData] = await Promise.all([
+            fetch('words_toefl.json').then(r => r.ok ? r.json() : {toefl: []}),
+            fetch('words_ielts.json').then(r => r.ok ? r.json() : {ielts: []})
+          ]);
+          const touyaWords = [
+            ...(toeflData.toefl || []),
+            ...(ieltsData.ielts || [])
+          ].map(w => ({
             word: w.word,
             phonetic: w.phonetic || '',
             meanings: w.meaning ? [w.meaning] : [],
             example: '',
             isCore: true
           }));
+          wordCache[examId] = touyaWords;
+          console.log(`Loaded touya: ${touyaWords.length} words`);
+          return touyaWords;
+        default: return [];
+      }
 
-          vocabularyLoaded = true;
-        } else {
-          console.log('Failed to fetch words.json:', response.status);
+      try {
+        const response = await fetch(fileName);
+        if (response.ok) {
+          const data = await response.json();
+          const words = (data[keyName] || []).map(w => ({
+            word: w.word,
+            phonetic: w.phonetic || '',
+            meanings: w.meaning ? [w.meaning] : [],
+            example: '',
+            isCore: true
+          }));
+          wordCache[examId] = words;
+          console.log(`Loaded ${examId}: ${words.length} words`);
+          return words;
         }
       } catch (e) {
-        console.log('Failed to load words.json:', e);
+        console.log(`Failed to load ${fileName}:`, e);
+      }
+      return [];
+    }
+
+    // 初始化时预加载当前考试的词库
+    async function init() {
+      // 预加载当前考试的词库
+      try {
+        const words = await loadExamWords(currentExam);
+        WORDS[currentExam] = words;
+        vocabularyLoaded = true;
+      } catch (e) {
+        console.log('Failed to load initial words:', e);
         showToast('词库加载失败，请刷新重试');
       }
 
@@ -3530,6 +3569,13 @@
       saveState();
       renderExamDropdown();
       renderAbilityContent();
+      // 异步加载选中考试的词库
+      if (!wordCache[examId]) {
+        loadExamWords(examId).then(words => {
+          WORDS[examId] = words;
+          console.log(`${examId} 词库已加载: ${words.length} words`);
+        });
+      }
       // Close dropdown
       document.getElementById('exam-dropdown-menu').classList.remove('show');
     }
@@ -4040,10 +4086,13 @@
     let flashcardWords = [];
     let isFlipped = false;
 
-    function showFlashcardMode() {
-      console.log('showFlashcardMode called, currentExam:', currentExam);
-      console.log('WORDS:', Object.keys(WORDS).reduce((acc, k) => { acc[k] = WORDS[k]?.length || 0; return acc; }, {}));
-      const words = WORDS[currentExam] || WORDS.cet4;
+    async function showFlashcardMode() {
+      // 确保词库已加载
+      if (!WORDS[currentExam] || WORDS[currentExam].length === 0) {
+        const words = await loadExamWords(currentExam);
+        WORDS[currentExam] = words;
+      }
+      const words = WORDS[currentExam];
       console.log('words to learn:', words.length);
       // 过滤掉已经掌握的单词（level >= 4），优先学习未掌握的和核心词汇
       const unmastered = words.filter(w => (state.wordMastery[w.word] || 0) < 4);
@@ -4532,8 +4581,14 @@
       responseDiv.innerHTML = `<div style="line-height: 1.8;">${response.replace(/\n/g, '<br>')}</div>`;
     }
 
-        function showAllWords() {
-      const words = WORDS[currentExam] || WORDS.cet4;
+        async function showAllWords() {
+      // 确保词库已加载
+      if (!WORDS[currentExam] || WORDS[currentExam].length === 0) {
+        showToast('正在加载词库...');
+        const words = await loadExamWords(currentExam);
+        WORDS[currentExam] = words;
+      }
+      const words = WORDS[currentExam];
       const examNames = { cet4: '四级', cet6: '六级', kaoyan: '考研', touya: '托雅' };
 
       let html = `<div class="detail-header">
