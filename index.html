@@ -1541,8 +1541,8 @@
         <span id="header-points">0</span>
       </div>
       <button class="header-pet-btn" onclick="switchTab('pet')">
-        <span id="header-pet-emoji">${state.pet.isHatched ? '🐾' : '🥚'}</span>
-        <span id="header-pet-level">${state.pet.isHatched ? 'Lv.' + state.pet.level : ''}</span>
+        <span id="header-pet-icon">🌱</span>
+        <span id="header-pet-level">Lv.0</span>
       </button>
     </div>
   </header>
@@ -1794,11 +1794,17 @@
   <script>
     // ============== Data ==============
     const EXAMS = [
-      { id: 'cet4', name: 'CET-4', shortName: '四级', wordCount: 4543, color: '#4F86F7' },
-      { id: 'cet6', name: 'CET-6', shortName: '六级', wordCount: 2165, color: '#7B5CFA' },
-      { id: 'kaoyan', name: '考研', shortName: '考研', wordCount: 5304, color: '#4ECDC4' },
-      { id: 'touya', name: '托雅', shortName: '托雅', wordCount: 4516, color: '#FFC107' }
+      { id: 'cet4', name: 'CET-4', shortName: '四级', color: '#4F86F7' },
+      { id: 'cet6', name: 'CET-6', shortName: '六级', color: '#7B5CFA' },
+      { id: 'kaoyan', name: '考研', shortName: '考研', color: '#4ECDC4' },
+      { id: 'touya', name: '托雅', shortName: '托雅', color: '#FFC107' }
     ];
+
+    // Dynamic word count based on actual WORDS data
+    function getExamWordCount(examId) {
+      const words = WORDS[examId];
+      return words ? words.length : 0;
+    }
 
     const ABILITIES = [
       { id: 'vocab', name: '词汇', icon: '📚' }
@@ -1815,398 +1821,16 @@
       { type: 'hamster', emoji: '🐹', color: '#F4D03F' }
     ];
 
+    // Words loaded from words.json (external file)
     const WORDS = {
-      cet4: [
-        { word: 'abandon', phonetic: '/əˈbændən/', meanings: ['放弃', '遗弃', '停止'], example: 'Never abandon your dreams.', isCore: true },
-        { word: 'ability', phonetic: '/əˈbɪləti/', meanings: ['能力', '才能', '本领'], example: 'She has the ability to speak French.', isCore: true },
-        { word: 'able', phonetic: '/ˈeɪbl/', meanings: ['能够的', '有能力的', '能干的'], example: 'He is able to swim.', isCore: true },
-        { word: 'about', phonetic: '/əˈbaʊt/', meanings: ['关于', '大约', '在附近'], example: 'What is it about?', isCore: true },
-        { word: 'above', phonetic: '/əˈbʌv/', meanings: ['在...上面', '上面', '超过'], example: 'The bird flew above the tree.', isCore: true },
-        { word: 'abroad', phonetic: '/əˈbrɔːd/', meanings: ['在国外', '到国外'], example: 'She studied abroad for two years.', isCore: false },
-        { word: 'absent', phonetic: '/ˈæbsənt/', meanings: ['缺席的', '不在场的', '缺乏的'], example: 'He was absent from school yesterday.', isCore: true },
-        { word: 'absorb', phonetic: '/əbˈzɔːrb/', meanings: ['吸收', '理解', '吸引'], example: 'Plants absorb water from the soil.', isCore: false },
-        { word: 'accept', phonetic: '/əkˈsept/', meanings: ['接受', '承认', '认可'], example: 'Please accept my apology.', isCore: true },
-        { word: 'access', phonetic: '/ˈækses/', meanings: ['进入', '访问', '使用权'], example: 'The access to the building is restricted.', isCore: true },
-        { word: 'accident', phonetic: '/ˈæksɪdənt/', meanings: ['事故', '意外', '交通事故'], example: 'The accident happened on the highway.', isCore: true },
-        { word: 'accomplish', phonetic: '/əˈkʌmplɪʃ/', meanings: ['完成', '达到', '实现'], example: 'We accomplished our mission on time.', isCore: true },
-        { word: 'account', phonetic: '/əˈkaʊnt/', meanings: ['账户', '叙述', '账目'], example: 'She opened a bank account.', isCore: true },
-        { word: 'achieve', phonetic: '/əˈtʃiːv/', meanings: ['完成', '达到', '获得'], example: 'We achieved our goals.', isCore: true },
-        { word: 'acknowledge', phonetic: '/əkˈnɒlɪdʒ/', meanings: ['承认', '确认', '致谢'], example: 'I acknowledge your contribution.', isCore: true },
-        { word: 'acquire', phonetic: '/əˈkwaɪər/', meanings: ['获得', '学到', '收购'], example: 'We need to acquire new skills.', isCore: true },
-        { word: 'across', phonetic: '/əˈkrɒs/', meanings: ['穿过', '在对面', '遍及'], example: 'The bridge stretches across the river.', isCore: true },
-        { word: 'active', phonetic: '/ˈæktɪv/', meanings: ['积极的', '活跃的', '主动的'], example: 'She is an active member of the club.', isCore: true },
-        { word: 'activity', phonetic: '/ækˈtɪvəti/', meanings: ['活动', '行动'], example: 'The activity was fun.', isCore: true },
-        { word: 'adapt', phonetic: '/əˈdæpt/', meanings: ['适应', '改编', '修改'], example: 'Animals adapt to their environment.', isCore: true },
-        { word: 'add', phonetic: '/æd/', meanings: ['添加', '增加', '补充'], example: 'Add some sugar.', isCore: true },
-        { word: 'address', phonetic: '/əˈdres/', meanings: ['地址', '演说', '处理'], example: 'What is your email address?', isCore: true },
-        { word: 'adequate', phonetic: '/ˈædɪkwət/', meanings: ['足够的', '适当的', '勉强够的'], example: 'The food was adequate for everyone.', isCore: true },
-        { word: 'adjust', phonetic: '/əˈdʒʌst/', meanings: ['调整', '适应', '校准'], example: 'Please adjust the volume.', isCore: true },
-        { word: 'administration', phonetic: '/ədˌmɪnɪˈstreɪʃən/', meanings: ['管理', '行政', '政府'], example: 'The administration made a decision.', isCore: true },
-        { word: 'admire', phonetic: '/ədˈmaɪər/', meanings: ['钦佩', '欣赏', '称赞'], example: 'I admire your courage.', isCore: false },
-        { word: 'admit', phonetic: '/ədˈmɪt/', meanings: ['承认', '准许进入', '容纳'], example: 'He admitted his mistake.', isCore: true },
-        { word: 'adopt', phonetic: '/əˈdɒpt/', meanings: ['收养', '采用', '采纳'], example: 'They adopted a child last year.', isCore: true },
-        { word: 'adult', phonetic: '/ˈædʌlt/', meanings: ['成年人', '成年的'], example: 'An adult should be responsible.', isCore: true },
-        { word: 'advance', phonetic: '/ədˈvæns/', meanings: ['前进', '进步', '提前'], example: 'Science has advanced rapidly.', isCore: true },
-        { word: 'advantage', phonetic: '/ədˈvæntɪdʒ/', meanings: ['优势', '好处', '有利条件'], example: 'There are many advantages to living in the city.', isCore: true },
-        { word: 'adventure', phonetic: '/ədˈventʃər/', meanings: ['冒险', '奇遇', '冒险经历'], example: 'Their journey was a great adventure.', isCore: false },
-        { word: 'advertise', phonetic: '/ˈædvərtaɪz/', meanings: ['做广告', '宣传', '公布'], example: 'We need to advertise our products.', isCore: false },
-        { word: 'advice', phonetic: '/ədˈvaɪs/', meanings: ['建议', '劝告', '忠告'], example: 'Can you give me some advice?', isCore: true },
-        { word: 'advise', phonetic: '/ədˈvaɪz/', meanings: ['建议', '劝告', '通知'], example: 'I advise you to start early.', isCore: true },
-        { word: 'affair', phonetic: '/əˈfer/', meanings: ['事务', '事件', '绯闻'], example: 'The wedding was a grand affair.', isCore: false },
-        { word: 'affect', phonetic: '/əˈfekt/', meanings: ['影响', '感动', '作用于'], example: 'The weather affects my mood.', isCore: true },
-        { word: 'afford', phonetic: '/əˈfɔːrd/', meanings: ['负担得起', '提供', '抽出时间'], example: 'I cannot afford a new car.', isCore: true },
-        { word: 'afraid', phonetic: '/əˈfreɪd/', meanings: ['害怕的', '担心的', '恐怕'], example: 'Do not be afraid of failure.', isCore: true },
-        { word: 'after', phonetic: '/ˈæftər/', meanings: ['在...之后', '以后'], example: 'We will go after lunch.', isCore: true },
-        { word: 'afternoon', phonetic: '/ˌæftərˈnuːn/', meanings: ['下午', '午后'], example: 'See you this afternoon.', isCore: true },
-        { word: 'again', phonetic: '/əˈɡen/', meanings: ['再次', '又', '重新'], example: 'Please try again.', isCore: true },
-        { word: 'against', phonetic: '/əˈɡenst/', meanings: ['反对', '靠着', '违背'], example: 'She leaned against the wall.', isCore: true },
-        { word: 'age', phonetic: '/eɪdʒ/', meanings: ['年龄', '时代', '变老'], example: 'What is your age?', isCore: true },
-        { word: 'agency', phonetic: '/ˈeɪdʒənsi/', meanings: ['代理', '机构', '中介'], example: 'She works for a travel agency.', isCore: true },
-        { word: 'agent', phonetic: '/ˈeɪdʒənt/', meanings: ['代理人', '特工', '药剂'], example: 'He is a secret agent.', isCore: true },
-        { word: 'agree', phonetic: '/əˈɡriː/', meanings: ['同意', '赞成', '一致'], example: 'I agree with you.', isCore: true },
-        { word: 'agreement', phonetic: '/əˈɡriːmənt/', meanings: ['协议', '一致', '同意'], example: 'We reached an agreement.', isCore: true },
-        { word: 'ahead', phonetic: '/əˈhed/', meanings: ['在前面', '提前', '向前'], example: 'Go ahead.', isCore: true },
-        { word: 'aid', phonetic: '/eɪd/', meanings: ['帮助', '援助', '辅助'], example: 'They provided first aid.', isCore: true },
-        { word: 'aim', phonetic: '/eɪm/', meanings: ['目标', '目的', '瞄准'], example: 'Our aim is to win.', isCore: true },
-        { word: 'air', phonetic: '/er/', meanings: ['空气', '天空', '航空'], example: 'Fresh air is important.', isCore: true },
-        { word: 'aircraft', phonetic: '/ˈerkræft/', meanings: ['飞机', '航空器'], example: 'The aircraft landed safely.', isCore: false },
-        { word: 'airline', phonetic: '/ˈerlaɪn/', meanings: ['航空公司', '航线'], example: 'Which airline do you prefer?', isCore: false },
-        { word: 'airport', phonetic: '/ˈerpɔːrt/', meanings: ['机场', '航空站'], example: 'We arrived at the airport early.', isCore: true },
-        { word: 'alarm', phonetic: '/əˈlɑːrm/', meanings: ['警报', '闹钟', '惊恐'], example: 'The fire alarm went off.', isCore: false },
-        { word: 'album', phonetic: '/ˈælbəm/', meanings: ['专辑', '相册', '集邮册'], example: 'This is her debut album.', isCore: false },
-        { word: 'alcohol', phonetic: '/ˈælkəhɒl/', meanings: ['酒精', '酒', '含酒精饮料'], example: 'Alcohol is not allowed here.', isCore: false },
-        { word: 'alive', phonetic: '/əˈlaɪv/', meanings: ['活着的', '活跃的', '存在的'], example: 'Is she still alive?', isCore: true },
-        { word: 'allow', phonetic: '/əˈlaʊ/', meanings: ['允许', '准许', '给予'], example: 'Smoking is not allowed.', isCore: true },
-        { word: 'almost', phonetic: '/ˈɔːlmoʊst/', meanings: ['几乎', '差不多', '将近'], example: 'Almost everyone came.', isCore: true },
-        { word: 'alone', phonetic: '/əˈloʊn/', meanings: ['单独的', '孤独的', '独自'], example: 'She lives alone.', isCore: true },
-        { word: 'along', phonetic: '/əˈlɔːŋ/', meanings: ['沿着', '一起', '向前'], example: 'Walk along the river.', isCore: true },
-        { word: 'already', phonetic: '/ɔːlˈrɛdi/', meanings: ['已经', '早已'], example: 'I have already eaten.', isCore: true },
-        { word: 'also', phonetic: '/ˈɔːlsoʊ/', meanings: ['也', '同样', '还'], example: 'She also likes music.', isCore: true },
-        { word: 'alter', phonetic: '/ˈɔːltər/', meanings: ['改变', '修改', '改动'], example: 'You cannot alter the past.', isCore: false },
-        { word: 'alternative', phonetic: '/ɔːlˈtɜːrnətɪv/', meanings: ['替代的', '选择', '替代方案'], example: 'Is there an alternative?', isCore: true },
-        { word: 'although', phonetic: '/ɔːlˈðoʊ/', meanings: ['虽然', '尽管', '然而'], example: 'Although it was hard, I succeeded.', isCore: true },
-        { word: 'always', phonetic: '/ˈɔːlweɪz/', meanings: ['总是', '永远', '始终'], example: 'She is always happy.', isCore: true },
-        { word: 'ambition', phonetic: '/æmˈbɪʃən/', meanings: ['雄心', '野心', '志向'], example: 'She has great ambition.', isCore: false },
-        { word: 'amuse', phonetic: '/əˈmjuːz/', meanings: ['使开心', '娱乐', '逗笑'], example: 'The clown amused the children.', isCore: false },
-        { word: 'analyze', phonetic: '/ˈænəlaɪz/', meanings: ['分析', '研究', '解析'], example: 'We need to analyze the data.', isCore: true },
-        { word: 'ancient', phonetic: '/ˈeɪnʃənt/', meanings: ['古代的', '古老的', '年老的'], example: 'They studied ancient history.', isCore: true },
-        { word: 'anger', phonetic: '/ˈæŋɡər/', meanings: ['愤怒', '生气', '怒火'], example: 'He could not hide his anger.', isCore: false },
-        { word: 'angle', phonetic: '/ˈæŋɡl/', meanings: ['角度', '角', '观点'], example: 'The angle is 90 degrees.', isCore: false },
-        { word: 'angry', phonetic: '/ˈæŋɡri/', meanings: ['生气的', '愤怒的', '气愤的'], example: 'She was very angry.', isCore: true },
-        { word: 'animal', phonetic: '/ˈænɪml/', meanings: ['动物', '野兽', '牲畜'], example: 'Dogs are domestic animals.', isCore: true },
-        { word: 'announce', phonetic: '/əˈnaʊns/', meanings: ['宣布', '公布', '声明'], example: 'They announced the news.', isCore: true },
-        { word: 'annoy', phonetic: '/əˈnɔɪ/', meanings: ['使烦恼', '打扰', '惹恼'], example: 'The noise annoyed me.', isCore: false },
-        { word: 'annual', phonetic: '/ˈænjuəl/', meanings: ['每年的', '年度的', '一年生植物'], example: 'This is our annual meeting.', isCore: true },
-        { word: 'another', phonetic: '/əˈnʌðər/', meanings: ['另一个', '再一个', '不同的'], example: 'Give me another one.', isCore: true },
-        { word: 'answer', phonetic: '/ˈænsər/', meanings: ['回答', '答案', '回复'], example: 'I know the answer.', isCore: true },
-        { word: 'anticipate', phonetic: '/ænˈtɪsɪpeɪt/', meanings: ['预期', '期望', '预料'], example: 'We anticipate problems.', isCore: false },
-        { word: 'anxiety', phonetic: '/æŋˈzaɪəti/', meanings: ['焦虑', '担忧', '渴望'], example: 'She felt great anxiety.', isCore: false },
-        { word: 'anxious', phonetic: '/ˈæŋkʃəs/', meanings: ['焦虑的', '担忧的', '渴望的'], example: 'He was anxious about the exam.', isCore: true },
-        { word: 'any', phonetic: '/ˈɛni/', meanings: ['任何', '一些', '任意的'], example: 'Do you have any questions?', isCore: true },
-        { word: 'anybody', phonetic: '/ˈɛnɪbɒdi/', meanings: ['任何人', '随便谁'], example: 'Is anybody there?', isCore: true },
-        { word: 'anyone', phonetic: '/ˈɛniwʌn/', meanings: ['任何人', '随便谁'], example: 'Can anyone help?', isCore: true },
-        { word: 'anything', phonetic: '/ˈɛniθɪŋ/', meanings: ['任何事', '任何东西'], example: 'You can say anything.', isCore: true },
-        { word: 'anyway', phonetic: '/ˈɛniweɪ/', meanings: ['不管怎样', '反正', '无论如何'], example: 'Anyway, let us continue.', isCore: true },
-        { word: 'anywhere', phonetic: '/ˈɛniwer/', meanings: ['任何地方', '无论哪里'], example: 'You can go anywhere.', isCore: true },
-        { word: 'apart', phonetic: '/əˈpɑːrt/', meanings: ['分开', '相隔', '独立的'], example: 'The two houses are apart.', isCore: true },
-        { word: 'apartment', phonetic: '/əˈpɑːrtmənt/', meanings: ['公寓', '房间', '住宅'], example: 'She lives in an apartment.', isCore: true },
-        { word: 'apologize', phonetic: '/əˈpɒlədʒaɪz/', meanings: ['道歉', '认错', '谢罪'], example: 'I apologize for being late.', isCore: true },
-        { word: 'apology', phonetic: '/əˈpɒlədʒi/', meanings: ['道歉', '歉意', '辩护'], example: 'Please accept my apology.', isCore: true },
-        { word: 'apparent', phonetic: '/əˈpærənt/', meanings: ['明显的', '表面上的', '貌似的'], example: 'It was apparent that he was tired.', isCore: false },
-        { word: 'appeal', phonetic: '/əˈpiːl/', meanings: ['呼吁', '吸引', '上诉'], example: 'The charity appeals for donations.', isCore: false },
-        { word: 'appear', phonetic: '/əˈpɪr/', meanings: ['出现', '似乎', '显得'], example: 'A figure appeared in the distance.', isCore: true },
-        { word: 'appearance', phonetic: '/əˈpɪrəns/', meanings: ['外表', '出现', '容貌'], example: 'Do not judge by appearance.', isCore: true },
-        { word: 'appetite', phonetic: '/ˈæpɪtaɪt/', meanings: ['食欲', '胃口', '欲望'], example: 'I have no appetite.', isCore: false },
-        { word: 'apple', phonetic: '/ˈæpl/', meanings: ['苹果', '苹果树'], example: 'An apple a day keeps doctor away.', isCore: true },
-        { word: 'application', phonetic: '/ˌæplɪˈkeɪʃən/', meanings: ['申请', '应用', '应用程序'], example: 'I sent in my application.', isCore: true },
-        { word: 'apply', phonetic: '/əˈplaɪ/', meanings: ['申请', '应用', '适用'], example: 'I want to apply for this job.', isCore: true },
-        { word: 'appoint', phonetic: '/əˈpɔɪnt/', meanings: ['任命', '指定', '约定'], example: 'They appointed him as manager.', isCore: false },
-        { word: 'appointment', phonetic: '/əˈpɔɪntmənt/', meanings: ['约会', '预约', '任命'], example: 'I have a doctor appointment.', isCore: true },
-        { word: 'appreciate', phonetic: '/əˈpriːʃieɪt/', meanings: ['欣赏', '感激', '增值'], example: 'I appreciate your help.', isCore: true },
-        { word: 'approach', phonetic: '/əˈproʊtʃ/', meanings: ['接近', '方法', '途径'], example: 'We need a new approach.', isCore: true },
-        { word: 'appropriate', phonetic: '/əˈproʊpriət/', meanings: ['适当的', '合适的', '拨给'], example: 'Wear appropriate clothing.', isCore: true },
-        { word: 'approve', phonetic: '/əˈpruːv/', meanings: ['批准', '认可', '赞同'], example: 'The committee approved the plan.', isCore: true },
-        { word: 'approximate', phonetic: '/əˈprɒksɪmət/', meanings: ['大约的', '近似的', '接近'], example: 'What is the approximate cost?', isCore: false },
-        { word: 'architect', phonetic: '/ˈɑːrkɪtekt/', meanings: ['建筑师', '设计师', '创造者'], example: 'The architect designed this building.', isCore: false },
-        { word: 'area', phonetic: '/ˈeriə/', meanings: ['地区', '面积', '领域'], example: 'This is a rural area.', isCore: true },
-        { word: 'argue', phonetic: '/ˈɑːrɡjuː/', meanings: ['争论', '争辩', '主张'], example: 'They argued about politics.', isCore: true },
-        { word: 'argument', phonetic: '/ˈɑːrɡjumənt/', meanings: ['争论', '论据', '理由'], example: 'He made a strong argument.', isCore: true },
-        { word: 'arise', phonetic: '/əˈraɪz/', meanings: ['出现', '产生', '起身'], example: 'Problems arose from the situation.', isCore: false },
-        { word: 'arm', phonetic: '/ɑːrm/', meanings: ['手臂', '武器', '装备'], example: 'He broke his arm.', isCore: true },
-        { word: 'army', phonetic: '/ˈɑːrmi/', meanings: ['军队', '陆军', '大群'], example: 'He joined the army.', isCore: true },
-        { word: 'around', phonetic: '/əˈraʊnd/', meanings: ['在周围', '大约', '环绕'], example: 'Look around you.', isCore: true },
-        { word: 'arrange', phonetic: '/əˈreɪndʒ/', meanings: ['安排', '整理', '筹备'], example: 'I need to arrange a meeting.', isCore: true },
-        { word: 'arrangement', phonetic: '/əˈreɪndʒmənt/', meanings: ['安排', '布置', '协议'], example: 'We made arrangements for the trip.', isCore: true },
-        { word: 'arrest', phonetic: '/əˈrest/', meanings: ['逮捕', '拘留', '阻止'], example: 'The police arrested the suspect.', isCore: true },
-        { word: 'arrival', phonetic: '/əˈraɪvl/', meanings: ['到达', '到来', '到达者'], example: 'We awaited his arrival.', isCore: true },
-        { word: 'arrive', phonetic: '/əˈraɪv/', meanings: ['到达', '抵达', '来临'], example: 'When will you arrive?', isCore: true },
-        { word: 'arrow', phonetic: '/ˈæroʊ/', meanings: ['箭', '箭头', '箭状物'], example: 'He shot an arrow.', isCore: false },
-        { word: 'article', phonetic: '/ˈɑːrtɪkl/', meanings: ['文章', '物品', '条款'], example: 'I read an interesting article.', isCore: true },
-        { word: 'artificial', phonetic: '/ˌɑːrtɪˈfɪʃl/', meanings: ['人工的', '假的', '矫揉造作的'], example: 'This is artificial intelligence.', isCore: true },
-        { word: 'artist', phonetic: '/ˈɑːrtɪst/', meanings: ['艺术家', '美术家', '艺人'], example: 'She is a talented artist.', isCore: true },
-        { word: 'artistic', phonetic: '/ɑːrˈtɪstɪk/', meanings: ['艺术的', '精美的', '有艺术天赋的'], example: 'He has an artistic temperament.', isCore: false },
-        { word: 'aside', phonetic: '/əˈsaɪd/', meanings: ['在旁边', '到一边', '撇开'], example: 'Put it aside.', isCore: true },
-        { word: 'ask', phonetic: '/æsk/', meanings: ['问', '请求', '要求'], example: 'Can I ask a question?', isCore: true },
-        { word: 'asleep', phonetic: '/əˈsliːp/', meanings: ['睡着的', '麻木的'], example: 'The baby is asleep.', isCore: true },
-        { word: 'aspect', phonetic: '/ˈæspekt/', meanings: ['方面', '外观', '朝向'], example: 'We considered every aspect.', isCore: true },
-        { word: 'assemble', phonetic: '/əˈsembl/', meanings: ['组装', '集合', '召集'], example: 'We need to assemble the team.', isCore: false },
-        { word: 'assembly', phonetic: '/əˈsembli/', meanings: ['装配', '集会', '议会'], example: 'The assembly voted on the issue.', isCore: false },
-        { word: 'assess', phonetic: '/əˈses/', meanings: ['评估', '评定', '估计'], example: 'We need to assess the damage.', isCore: true },
-        { word: 'asset', phonetic: '/ˈæset/', meanings: ['资产', '财产', '优点'], example: 'Equipment is a valuable asset.', isCore: true },
-        { word: 'assign', phonetic: '/əˈsaɪn/', meanings: ['分配', '指派', '布置'], example: 'The teacher assigned homework.', isCore: false },
-        { word: 'assist', phonetic: '/əˈsɪst/', meanings: ['帮助', '协助', '支持'], example: 'Can you assist me?', isCore: true },
-        { word: 'assistance', phonetic: '/əˈsɪstəns/', meanings: ['帮助', '援助', '支持'], example: 'Thank you for your assistance.', isCore: true },
-        { word: 'assistant', phonetic: '/əˈsɪstənt/', meanings: ['助手', '助理', '助教'], example: 'She is a teaching assistant.', isCore: true },
-        { word: 'associate', phonetic: '/əˈsoʊʃieɪt/', meanings: ['联系', '同事', '副的'], example: 'I associate with good people.', isCore: true },
-        { word: 'association', phonetic: '/əˌsoʊsiˈeɪʃən/', meanings: ['协会', '联合', '联系'], example: 'She belongs to a professional association.', isCore: true },
-        { word: 'assume', phonetic: '/əˈsuːm/', meanings: ['假设', '假定', '认为'], example: 'I assume you are coming.', isCore: true },
-        { word: 'assure', phonetic: '/əˈʃʊr/', meanings: ['确保', '保证', '使确信'], example: 'I can assure you of our support.', isCore: false },
-        { word: 'astonish', phonetic: '/əˈstɒnɪʃ/', meanings: ['使惊讶', '使震惊'], example: 'The news astonished everyone.', isCore: false },
-        { word: 'atmosphere', phonetic: '/ˈætməsfɪr/', meanings: ['大气', '气氛', '氛围'], example: 'The atmosphere was tense.', isCore: true },
-        { word: 'attach', phonetic: '/əˈtætʃ/', meanings: ['附上', '贴上', '连接'], example: 'Please attach the file.', isCore: true },
-        { word: 'attack', phonetic: '/əˈtæk/', meanings: ['攻击', '袭击', '抨击'], example: 'The enemy launched an attack.', isCore: true },
-        { word: 'attempt', phonetic: '/əˈtempt/', meanings: ['尝试', '企图', '努力'], example: 'I will attempt the task.', isCore: true },
-        { word: 'attend', phonetic: '/əˈtend/', meanings: ['参加', '出席', '照顾'], example: 'I will attend the meeting.', isCore: true },
-        { word: 'attention', phonetic: '/əˈtenʃən/', meanings: ['注意', '关注', '注意力'], example: 'Pay attention to me.', isCore: true },
-        { word: 'attitude', phonetic: '/ˈætɪtuːd/', meanings: ['态度', '看法', '姿势'], example: 'She has a positive attitude.', isCore: true },
-        { word: 'attorney', phonetic: '/əˈtɜːrni/', meanings: ['律师', '代理人'], example: 'He hired an attorney.', isCore: false },
-        { word: 'attract', phonetic: '/əˈtrækt/', meanings: ['吸引', '引起', '招引'], example: 'Flowers attract butterflies.', isCore: true },
-        { word: 'attraction', phonetic: '/əˈtrækʃən/', meanings: ['吸引力', '魅力', '景点'], example: 'The city has many attractions.', isCore: true },
-        { word: 'attractive', phonetic: '/əˈtræktɪv/', meanings: ['有吸引力的', '迷人的', '好看的'], example: 'She is very attractive.', isCore: true },
-        { word: 'audience', phonetic: '/ˈɔːdiəns/', meanings: ['观众', '听众', '读者'], example: 'The audience applauded.', isCore: true },
-        { word: 'author', phonetic: '/ˈɔːθər/', meanings: ['作者', '作家', '创始人'], example: 'Who is the author of this book?', isCore: true },
-        { word: 'authority', phonetic: '/əˈθɒrəti/', meanings: ['权威', '权力', '当局'], example: 'He has the authority to decide.', isCore: true },
-        { word: 'automatic', phonetic: '/ˌɔːtəˈmætɪk/', meanings: ['自动的', '无意识的', '自动装置'], example: 'The door is automatic.', isCore: true },
-        { word: 'available', phonetic: '/əˈveɪləbl/', meanings: ['可用的', '可获得的', '有空的'], example: 'Is this product available?', isCore: true },
-        { word: 'average', phonetic: '/ˈævərɪdʒ/', meanings: ['平均的', '普通的', '平均'], example: 'What is the average score?', isCore: true },
-        { word: 'avoid', phonetic: '/əˈvɔɪd/', meanings: ['避免', '逃避', '避开'], example: 'Try to avoid mistakes.', isCore: true },
-        { word: 'awake', phonetic: '/əˈweɪk/', meanings: ['醒着的', '意识到', '唤醒'], example: 'I am still awake.', isCore: true },
-        { word: 'award', phonetic: '/əˈwɔːrd/', meanings: ['奖励', '奖赏', '授予'], example: 'She won an award.', isCore: true },
-        { word: 'aware', phonetic: '/əˈwer/', meanings: ['意识到的', '知道的', '察觉的'], example: 'Are you aware of the problem?', isCore: true },
-        { word: 'away', phonetic: '/əˈweɪ/', meanings: ['离开', '远离', '在别处'], example: 'Go away!', isCore: true },
-        { word: 'awful', phonetic: '/ˈɔːfl/', meanings: ['可怕的', '极坏的', '糟糕的'], example: 'The weather is awful.', isCore: true },
-        { word: 'baby', phonetic: '/ˈbeɪbi/', meanings: ['婴儿', '宝宝', '孩子气的'], example: 'The baby is sleeping.', isCore: true },
-        { word: 'back', phonetic: '/bæk/', meanings: ['背部', '后面', '支持'], example: 'He sat back and relaxed.', isCore: true },
-        { word: 'background', phonetic: '/ˈbækɡraʊnd/', meanings: ['背景', '经历', '底色'], example: 'What is your background?', isCore: true },
-        { word: 'backward', phonetic: '/ˈbækwərd/', meanings: ['向后的', '倒退的', '落后的'], example: 'Do not go backward.', isCore: false },
-        { word: 'bacteria', phonetic: '/bækˈtɪriə/', meanings: ['细菌'], example: 'Bacteria can cause infections.', isCore: false },
-        { word: 'bad', phonetic: '/bæd/', meanings: ['坏的', '差的', '严重的'], example: 'This is bad news.', isCore: true },
-        { word: 'badly', phonetic: '/ˈbædli/', meanings: ['坏地', '糟糕地', '非常'], example: 'He performed badly.', isCore: true },
-        { word: 'bag', phonetic: '/bæɡ/', meanings: ['袋子', '包', '提包'], example: 'I need a bag.', isCore: true },
-        { word: 'baggage', phonetic: '/ˈbæɡɪdʒ/', meanings: ['行李', '行李箱'], example: 'Please check your baggage.', isCore: true },
-        { word: 'bake', phonetic: '/beɪk/', meanings: ['烘烤', '烤制'], example: 'I like to bake cakes.', isCore: false },
-        { word: 'balance', phonetic: '/ˈbæləns/', meanings: ['平衡', '余额', '权衡'], example: 'Keep your balance.', isCore: true },
-        { word: 'ball', phonetic: '/bɔːl/', meanings: ['球', '舞会', '球状物'], example: 'Throw the ball.', isCore: true },
-        { word: 'balloon', phonetic: '/bəˈluːn/', meanings: ['气球', '热气球'], example: 'The child held a balloon.', isCore: false },
-        { word: 'ban', phonetic: '/bæn/', meanings: ['禁止', '禁令', '取缔'], example: 'The government banned smoking.', isCore: true },
-        { word: 'banana', phonetic: '/bəˈnænə/', meanings: ['香蕉'], example: 'I eat a banana every day.', isCore: true },
-        { word: 'band', phonetic: '/bænd/', meanings: ['乐队', '带', '波段'], example: 'The band played well.', isCore: true },
-        { word: 'bang', phonetic: '/bæŋ/', meanings: ['砰', '猛击', '巨响'], example: 'The door shut with a bang.', isCore: false },
-        { word: 'bank', phonetic: '/bæŋk/', meanings: ['银行', '河岸', '储库'], example: 'I need to go to the bank.', isCore: true },
-        { word: 'bankrupt', phonetic: '/ˈbæŋkrʌpt/', meanings: ['破产的', '破产者'], example: 'The company went bankrupt.', isCore: false },
-        { word: 'banner', phonetic: '/ˈbænər/', meanings: ['旗帜', '横幅', '标语'], example: 'The banner read Welcome.', isCore: false },
-        { word: 'bar', phonetic: '/bɑːr/', meanings: ['酒吧', '条', '栅栏'], example: 'He works at a bar.', isCore: true },
-        { word: 'barrier', phonetic: '/ˈbæriər/', meanings: ['障碍', '屏障', '栅栏'], example: 'There is a language barrier.', isCore: true },
-        { word: 'base', phonetic: '/beɪs/', meanings: ['基础', '基地', '基于'], example: 'The base of the mountain.', isCore: true },
-        { word: 'baseball', phonetic: '/ˈbeɪsbɔːl/', meanings: ['棒球', '棒球运动'], example: 'Baseball is popular in America.', isCore: true },
-        { word: 'basic', phonetic: '/ˈbeɪsɪk/', meanings: ['基本的', '基础的', '初步的'], example: 'This is a basic rule.', isCore: true },
-        { word: 'basically', phonetic: '/ˈbeɪsɪkli/', meanings: ['基本上', '主要地', '其实'], example: 'Basically, I agree with you.', isCore: true },
-        { word: 'basin', phonetic: '/ˈbeɪsn/', meanings: ['盆地', '水池', '盆'], example: 'The Amazon Basin.', isCore: false },
-        { word: 'basis', phonetic: '/ˈbeɪsɪs/', meanings: ['基础', '根据', '基准'], example: 'On what basis?', isCore: true },
-        { word: 'basket', phonetic: '/ˈbæskɪt/', meanings: ['篮子', '筐', '篮球筐'], example: 'She carried a basket.', isCore: true },
-        { word: 'basketball', phonetic: '/ˈbæskɪtbɔːl/', meanings: ['篮球', '篮球运动'], example: 'They played basketball.', isCore: true },
-        { word: 'bath', phonetic: '/bæθ/', meanings: ['沐浴', '洗澡', '浴室'], example: 'I took a bath.', isCore: true },
-        { word: 'bathroom', phonetic: '/ˈbæθruːm/', meanings: ['浴室', '卫生间', '洗手间'], example: 'Where is the bathroom?', isCore: true },
-        { word: 'battery', phonetic: '/ˈbætəri/', meanings: ['电池', '蓄电池', '一系列'], example: 'The battery is dead.', isCore: true },
-        { word: 'battle', phonetic: '/ˈbætl/', meanings: ['战斗', '战役', '斗争'], example: 'The battle lasted three days.', isCore: true },
-        { word: 'bay', phonetic: '/beɪ/', meanings: ['海湾', '港湾', '月桂树'], example: 'San Francisco Bay.', isCore: false },
-        { word: 'beach', phonetic: '/biːtʃ/', meanings: ['海滩', '海滨', '湖滨'], example: 'We went to the beach.', isCore: true },
-        { word: 'bear', phonetic: '/ber/', meanings: ['熊', '忍受', '负担'], example: 'The bear is dangerous.', isCore: true },
-        { word: 'beard', phonetic: '/bɪrd/', meanings: ['胡须', '下巴的胡须'], example: 'He has a long beard.', isCore: false },
-        { word: 'beast', phonetic: '/biːst/', meanings: ['野兽', '动物', '凶残的人'], example: 'The lion is the king of beasts.', isCore: false },
-        { word: 'beat', phonetic: '/biːt/', meanings: ['打', '击败', '心跳'], example: 'I beat him at chess.', isCore: true },
-        { word: 'beautiful', phonetic: '/ˈbjuːtɪfl/', meanings: ['美丽的', '漂亮的', '美好的'], example: 'She is beautiful.', isCore: true },
-        { word: 'beauty', phonetic: '/ˈbjuːti/', meanings: ['美丽', '美人', '美景'], example: 'Beauty is in the eye of the beholder.', isCore: true },
-        { word: 'because', phonetic: '/bɪˈkɔːz/', meanings: ['因为', '由于'], example: 'Because of you.', isCore: true },
-        { word: 'become', phonetic: '/bɪˈkʌm/', meanings: ['变成', '成为', '适合'], example: 'She wants to become a doctor.', isCore: true },
-        { word: 'bed', phonetic: '/bed/', meanings: ['床', '河床', '苗圃'], example: 'Go to bed.', isCore: true },
-        { word: 'bedroom', phonetic: '/ˈbedruːm/', meanings: ['卧室', '卧房'], example: 'This is my bedroom.', isCore: true },
-        { word: 'bee', phonetic: '/biː/', meanings: ['蜜蜂', '忙碌的人'], example: 'A bee is buzzing.', isCore: true },
-        { word: 'beef', phonetic: '/biːf/', meanings: ['牛肉', '肌肉', '抱怨'], example: 'I prefer beef to pork.', isCore: true },
-        { word: 'beer', phonetic: '/bɪr/', meanings: ['啤酒', '一杯啤酒'], example: 'Would you like a beer?', isCore: true },
-        { word: 'before', phonetic: '/bɪˈfɔːr/', meanings: ['在...之前', '以前'], example: 'Before I leave.', isCore: true },
-        { word: 'begin', phonetic: '/bɪˈɡɪn/', meanings: ['开始', '着手', '启动'], example: 'Let us begin.', isCore: true },
-        { word: 'beginning', phonetic: '/bɪˈɡɪnɪŋ/', meanings: ['开始', '开头', '起点'], example: 'It was the beginning of a new era.', isCore: true },
-        { word: 'behalf', phonetic: '/bɪˈhæf/', meanings: ['代表', '为了', '利益'], example: 'On behalf of my team.', isCore: true },
-        { word: 'behave', phonetic: '/bɪˈheɪv/', meanings: ['表现', '行为', '举止'], example: 'Children should behave.', isCore: true },
-        { word: 'behavior', phonetic: '/bɪˈheɪvjər/', meanings: ['行为', '举止', '表现'], example: 'His behavior was odd.', isCore: true },
-        { word: 'behind', phonetic: '/bɪˈhaɪnd/', meanings: ['在...后面', '落后于', '背后'], example: 'Hide behind the tree.', isCore: true },
-        { word: 'being', phonetic: '/ˈbiːɪŋ/', meanings: ['存在', '生命', '生物'], example: 'Human beings.', isCore: true },
-        { word: 'belief', phonetic: '/bɪˈliːf/', meanings: ['信念', '信仰', '相信'], example: 'It is my belief.', isCore: true },
-        { word: 'believe', phonetic: '/bɪˈliːv/', meanings: ['相信', '认为', '信仰'], example: 'I believe in you.', isCore: true },
-        { word: 'bell', phonetic: '/bel/', meanings: ['钟', '铃', '钟声'], example: 'Ring the bell.', isCore: true },
-        { word: 'belong', phonetic: '/bɪˈlɔːŋ/', meanings: ['属于', '适合', '应在'], example: 'Where do I belong?', isCore: true },
-        { word: 'belongings', phonetic: '/bɪˈlɔːŋɪŋz/', meanings: ['所有物', '财产', '行李'], example: 'She lost all her belongings.', isCore: true },
-        { word: 'below', phonetic: '/bɪˈloʊ/', meanings: ['在...下面', '低于', '以下'], example: 'Temperature below zero.', isCore: true },
-        { word: 'belt', phonetic: '/belt/', meanings: ['腰带', '传送带', '地带'], example: 'Fasten your seat belt.', isCore: true },
-        { word: 'bench', phonetic: '/bentʃ/', meanings: ['长凳', '工作台', '法官席'], example: 'Sit on the bench.', isCore: true },
-        { word: 'bend', phonetic: '/bend/', meanings: ['弯曲', '屈服', '转弯'], example: 'Bend your knee.', isCore: true },
-        { word: 'beneath', phonetic: '/bɪˈniːθ/', meanings: ['在...之下', '低于', '不值得'], example: 'Beneath the surface.', isCore: true },
-        { word: 'benefit', phonetic: '/ˈbenɪfɪt/', meanings: ['利益', '好处', '有益于'], example: 'What are the benefits?', isCore: true },
-        { word: 'bent', phonetic: '/bent/', meanings: ['弯曲的', '决心的', '弯折'], example: 'The branch is bent.', isCore: false },
-        { word: 'beside', phonetic: '/bɪˈsaɪd/', meanings: ['在...旁边', '与...相比'], example: 'Sit beside me.', isCore: true },
-        { word: 'besides', phonetic: '/bɪˈsaɪdz/', meanings: ['除了', '此外', '而且'], example: 'Besides English, I speak Chinese.', isCore: true },
-        { word: 'best', phonetic: '/best/', meanings: ['最好的', '最优的', '最好地'], example: 'The best decision.', isCore: true },
-        { word: 'better', phonetic: '/ˈbetər/', meanings: ['更好的', '较好', '改善'], example: 'This is better.', isCore: true },
-        { word: 'between', phonetic: '/bɪˈtwiːn/', meanings: ['在...之间', '介于'], example: 'Between you and me.', isCore: true },
-        { word: 'beyond', phonetic: '/bɪˈjɒnd/', meanings: ['超过', '越过', '在远处'], example: 'Beyond repair.', isCore: true },
-        { word: 'bias', phonetic: '/ˈbaɪəs/', meanings: ['偏见', '偏向', '倾向'], example: 'There is a bias in the report.', isCore: true },
-        { word: 'big', phonetic: '/bɪɡ/', meanings: ['大的', '重要的', '长大了'], example: 'A big house.', isCore: true },
-        { word: 'bike', phonetic: '/baɪk/', meanings: ['自行车', '骑自行车'], example: 'I ride a bike to school.', isCore: true },
-        { word: 'bill', phonetic: '/bɪl/', meanings: ['账单', '法案', '钞票'], example: 'Pay the bill.', isCore: true },
-        { word: 'billion', phonetic: '/ˈbɪljən/', meanings: ['十亿', '大量'], example: 'Two billion people.', isCore: true },
-        { word: 'bind', phonetic: '/baɪnd/', meanings: ['捆绑', '约束', '装订'], example: 'Bind the books.', isCore: false },
-        { word: 'biology', phonetic: '/baɪˈɒlədʒi/', meanings: ['生物学', '生命科学'], example: 'She studies biology.', isCore: true },
-        { word: 'bird', phonetic: '/bɜːrd/', meanings: ['鸟', '禽类'], example: 'The bird is singing.', isCore: true },
-        { word: 'birth', phonetic: '/bɜːrθ/', meanings: ['出生', '诞生', '起源'], example: 'The birth of a baby.', isCore: true },
-        { word: 'birthday', phonetic: '/ˈbɜːrθdeɪ/', meanings: ['生日', '诞辰'], example: 'Happy birthday!', isCore: true },
-        { word: 'biscuit', phonetic: '/ˈbɪskɪt/', meanings: ['饼干', '小面包'], example: 'I like biscuits.', isCore: true },
-        { word: 'bishop', phonetic: '/ˈbɪʃəp/', meanings: ['主教', '围棋棋手'], example: 'The bishop is a religious leader.', isCore: false },
-        { word: 'bit', phonetic: '/bɪt/', meanings: ['一点', '小片', '咬'], example: 'A bit of water.', isCore: true },
-        { word: 'bite', phonetic: '/baɪt/', meanings: ['咬', '叮', '咬伤'], example: 'The dog might bite.', isCore: true },
-        { word: 'bitter', phonetic: '/ˈbɪtər/', meanings: ['苦的', '痛苦的', '激烈的'], example: 'The medicine is bitter.', isCore: true },
-        { word: 'black', phonetic: '/blæk/', meanings: ['黑色的', '黑人的', '黑暗的'], example: 'Black and white.', isCore: true },
-        { word: 'blackboard', phonetic: '/ˈblækbɔːrd/', meanings: ['黑板'], example: 'Write on the blackboard.', isCore: true },
-        { word: 'blade', phonetic: '/bleɪd/', meanings: ['刀片', '叶片', '剑'], example: 'A sharp blade.', isCore: false },
-        { word: 'blame', phonetic: '/bleɪm/', meanings: ['责备', '责怪', '责任'], example: 'Do not blame me.', isCore: true },
-        { word: 'blank', phonetic: '/blæŋk/', meanings: ['空白的', '空白处', '漠然'], example: 'Leave a blank.', isCore: true },
-        { word: 'blanket', phonetic: '/ˈblæŋkɪt/', meanings: ['毯子', '覆盖物', '覆盖'], example: 'Wrap yourself in a blanket.', isCore: true },
-        { word: 'blast', phonetic: '/blæst/', meanings: ['爆炸', '冲击波', '一阵'], example: 'A bomb blast.', isCore: false },
-        { word: 'blaze', phonetic: '/bleɪz/', meanings: ['燃烧', '火焰', '闪耀'], example: 'The fire blazed.', isCore: false },
-        { word: 'bleed', phonetic: '/bliːd/', meanings: ['出血', '流血', '榨取'], example: 'The wound is bleeding.', isCore: true },
-        { word: 'blend', phonetic: '/blend/', meanings: ['混合', '融合', '混合物'], example: 'Blend the ingredients.', isCore: false },
-        { word: 'bless', phonetic: '/bles/', meanings: ['祝福', '保佑', '神圣化'], example: 'God bless you.', isCore: false },
-        { word: 'blind', phonetic: '/blaɪnd/', meanings: ['瞎的', '盲目的', '盲目的'], example: 'He is blind in one eye.', isCore: true },
-        { word: 'block', phonetic: '/blɒk/', meanings: ['块', '街区', '阻止'], example: 'A block of ice.', isCore: true },
-        { word: 'blood', phonetic: '/blʌd/', meanings: ['血', '血液', '血统'], example: 'Blood is red.', isCore: true },
-        { word: 'bloom', phonetic: '/bluːm/', meanings: ['开花', '花期', '繁荣'], example: 'The flowers bloom in spring.', isCore: false },
-        { word: 'blossom', phonetic: '/ˈblɒsəm/', meanings: ['花朵', '开花', '顺利发展'], example: 'The apple blossom.', isCore: false },
-        { word: 'blouse', phonetic: '/blaʊs/', meanings: ['女式衬衫', '短上衣'], example: 'She wore a white blouse.', isCore: false },
-        { word: 'blow', phonetic: '/bloʊ/', meanings: ['吹', '打击', '吹气'], example: 'Blow the candle out.', isCore: true },
-        { word: 'blue', phonetic: '/bluː/', meanings: ['蓝色的', '忧郁的', '蓝色'], example: 'The sky is blue.', isCore: true },
-        { word: 'blur', phonetic: '/blɜːr/', meanings: ['模糊', '使模糊', '污点'], example: 'The details blur.', isCore: false },
-        { word: 'board', phonetic: '/bɔːrd/', meanings: ['木板', '董事会', '上船'], example: 'A chess board.', isCore: true },
-        { word: 'boast', phonetic: '/boʊst/', meanings: ['自夸', '吹嘘', '拥有'], example: 'He boasts about his wealth.', isCore: false },
-        { word: 'boat', phonetic: '/boʊt/', meanings: ['船', '小船', '划船'], example: 'Row the boat.', isCore: true },
-        { word: 'body', phonetic: '/ˈbɒdi/', meanings: ['身体', '尸体', '主体'], example: 'Human body.', isCore: true },
-        { word: 'boil', phonetic: '/bɔɪl/', meanings: ['沸腾', '煮沸', '煮'], example: 'Boil the water.', isCore: true },
-        { word: 'bold', phonetic: '/boʊld/', meanings: ['勇敢的', '粗体的', '冒失的'], example: 'A bold decision.', isCore: true },
-        { word: 'bolt', phonetic: '/boʊlt/', meanings: ['螺栓', '闪电', '门闩'], example: 'A bolt of lightning.', isCore: false },
-        { word: 'bomb', phonetic: '/bɒm/', meanings: ['炸弹', '轰炸', '失败'], example: 'The bomb exploded.', isCore: true },
-        { word: 'bond', phonetic: '/bɒnd/', meanings: ['债券', '联系', '结合'], example: 'A bond between us.', isCore: true },
-        { word: 'bone', phonetic: '/boʊn/', meanings: ['骨头', '骨状物', '骨架'], example: 'A broken bone.', isCore: true },
-        { word: 'bonus', phonetic: '/ˈboʊnəs/', meanings: ['奖金', '红利', '额外好处'], example: 'Year-end bonus.', isCore: true },
-        { word: 'book', phonetic: '/bʊk/', meanings: ['书', '预订', '登记'], example: 'Read a book.', isCore: true },
-        { word: 'boom', phonetic: '/buːm/', meanings: ['繁荣', '轰鸣', '激增'], example: 'The economy boom.', isCore: false },
-        { word: 'boost', phonetic: '/buːst/', meanings: ['促进', '提高', '推动'], example: 'Boost sales.', isCore: true },
-        { word: 'boot', phonetic: '/buːt/', meanings: ['靴子', '启动', '踢'], example: 'Wear boots.', isCore: true },
-        { word: 'border', phonetic: '/ˈbɔːrdər/', meanings: ['边界', '边境', '接壤'], example: 'Cross the border.', isCore: true },
-        { word: 'bore', phonetic: '/bɔːr/', meanings: ['使厌烦', '钻孔', '令人厌烦的人'], example: 'This work bores me.', isCore: false },
-        { word: 'born', phonetic: '/bɔːrn/', meanings: ['出生的', '天生的', '出身'], example: 'She was born in 1990.', isCore: true },
-        { word: 'borrow', phonetic: '/ˈbɒroʊ/', meanings: ['借', '借入', '采用'], example: 'Can I borrow your pen?', isCore: true },
-        { word: 'boss', phonetic: '/bɒs/', meanings: ['老板', '上司', '指挥'], example: 'My boss is strict.', isCore: true },
-        { word: 'both', phonetic: '/boʊθ/', meanings: ['两个', '两者', '都'], example: 'Both of us.', isCore: true },
-        { word: 'bother', phonetic: '/ˈbɒðər/', meanings: ['打扰', '麻烦', '关心'], example: 'Do not bother me.', isCore: true },
-        { word: 'bottle', phonetic: '/ˈbɒtl/', meanings: ['瓶子', '一瓶', '把...装瓶'], example: 'A bottle of water.', isCore: true },
-        { word: 'bottom', phonetic: '/ˈbɒtəm/', meanings: ['底部', '尽头', '最低的'], example: 'At the bottom of the page.', isCore: true },
-        { word: 'bounce', phonetic: '/baʊns/', meanings: ['弹跳', '跳动', '反弹'], example: 'The ball bounces.', isCore: true },
-        { word: 'bound', phonetic: '/baʊnd/', meanings: ['必定的', '受约束的', '弹跳'], example: 'We are bound to succeed.', isCore: true },
-        { word: 'boundary', phonetic: '/ˈbaʊndəri/', meanings: ['边界', '界限', '分界线'], example: 'The boundary between countries.', isCore: true },
-        { word: 'bow', phonetic: '/baʊ/', meanings: ['鞠躬', '弓', '蝴蝶结'], example: 'Make a bow.', isCore: true },
-        { word: 'bowl', phonetic: '/boʊl/', meanings: ['碗', '碗状物', '一盘'], example: 'A bowl of rice.', isCore: true },
-        { word: 'box', phonetic: '/bɒks/', meanings: ['盒子', '箱', '拳击'], example: 'A box of chocolates.', isCore: true },
-        { word: 'boy', phonetic: '/bɔɪ/', meanings: ['男孩', '小伙子', '儿子'], example: 'The boy is playing.', isCore: true },
-        { word: 'boycott', phonetic: '/ˈbɔɪkɒt/', meanings: ['抵制', '排斥', '联合抵制'], example: 'Boycott the products.', isCore: false },
-        { word: 'brain', phonetic: '/breɪn/', meanings: ['大脑', '脑', '智力'], example: 'Use your brain.', isCore: true },
-        { word: 'brake', phonetic: '/breɪk/', meanings: ['刹车', '制动器', '阻止'], example: 'Press the brake.', isCore: true },
-        { word: 'branch', phonetic: '/bræntʃ/', meanings: ['分支', '树枝', '分支机构'], example: 'A branch of the company.', isCore: true },
-        { word: 'brand', phonetic: '/brænd/', meanings: ['品牌', '商标', '烙印'], example: 'A famous brand.', isCore: true },
-        { word: 'brave', phonetic: '/breɪv/', meanings: ['勇敢的', '无畏的', '华丽的'], example: 'Be brave.', isCore: true },
-        { word: 'bread', phonetic: '/bred/', meanings: ['面包', '食物', '生计'], example: 'A slice of bread.', isCore: true },
-        { word: 'break', phonetic: '/breɪk/', meanings: ['打破', '休息', '违约'], example: 'Break the window.', isCore: true },
-        { word: 'breakfast', phonetic: '/ˈbrekfəst/', meanings: ['早餐', '早饭'], example: 'Have breakfast.', isCore: true },
-        { word: 'breast', phonetic: '/brest/', meanings: ['胸部', '乳房', '胸膛'], example: 'Breast cancer.', isCore: false },
-        { word: 'breath', phonetic: '/breθ/', meanings: ['呼吸', '气息', '一口气'], example: 'Take a deep breath.', isCore: true },
-        { word: 'breathe', phonetic: '/briːð/', meanings: ['呼吸', '呼吸空气', '轻声说'], example: 'Breathe deeply.', isCore: true },
-        { word: 'breed', phonetic: '/briːd/', meanings: ['繁殖', '饲养', '品种'], example: 'Dogs breed quickly.', isCore: false },
-        { word: 'breeze', phonetic: '/briːz/', meanings: ['微风', '轻松', '轻易通过'], example: 'A gentle breeze.', isCore: false },
-        { word: 'brick', phonetic: '/brɪk/', meanings: ['砖', '砖块', '砖砌的'], example: 'A wall of bricks.', isCore: true },
-        { word: 'bride', phonetic: '/braɪd/', meanings: ['新娘', '即将结婚的女子'], example: 'The bride looked beautiful.', isCore: false },
-        { word: 'bridge', phonetic: '/brɪdʒ/', meanings: ['桥', '桥梁', '架起'], example: 'Cross the bridge.', isCore: true },
-        { word: 'brief', phonetic: '/briːf/', meanings: ['简短的', '短暂的', '摘要'], example: 'A brief introduction.', isCore: true },
-        { word: 'bright', phonetic: '/braɪt/', meanings: ['明亮的', '聪明的', '鲜艳的'], example: 'The sun is bright.', isCore: true },
-        { word: 'brilliant', phonetic: '/ˈbrɪliənt/', meanings: ['灿烂的', '聪颖的', '出色的'], example: 'A brilliant idea.', isCore: true },
-        { word: 'bring', phonetic: '/brɪŋ/', meanings: ['带来', '引起', '导致'], example: 'Bring me a cup of tea.', isCore: true },
-        { word: 'broad', phonetic: '/brɔːd/', meanings: ['宽阔的', '广泛的', '概括的'], example: 'A broad street.', isCore: true },
-        { word: 'broadcast', phonetic: '/ˈbrɔːdkæst/', meanings: ['广播', '播送', '宣传'], example: 'The program broadcast yesterday.', isCore: true },
-        { word: 'broken', phonetic: '/ˈbroʊkən/', meanings: ['破损的', '骨折的', '破碎的'], example: 'A broken glass.', isCore: true },
-        { word: 'bronze', phonetic: '/brɒnz/', meanings: ['青铜', '青铜色的', '铜牌'], example: 'A bronze medal.', isCore: false },
-        { word: 'brother', phonetic: '/ˈbrʌðər/', meanings: ['兄弟', '教友', '同胞'], example: 'My elder brother.', isCore: true },
-        { word: 'brown', phonetic: '/braʊn/', meanings: ['棕色的', '褐色', '棕褐色'], example: 'Brown eyes.', isCore: true },
-        { word: 'brush', phonetic: '/brʌʃ/', meanings: ['刷子', '刷', '擦过'], example: 'Use a brush.', isCore: true },
-        { word: 'bubble', phonetic: '/ˈbʌbl/', meanings: ['气泡', '泡沫', '冒泡'], example: 'Soap bubbles.', isCore: true },
-        { word: 'bucket', phonetic: '/ˈbʌkɪt/', meanings: ['水桶', '吊桶', '一桶'], example: 'A bucket of water.', isCore: true },
-        { word: 'budget', phonetic: '/ˈbʌdʒɪt/', meanings: ['预算', '预算案', '谨慎花费'], example: 'Manage your budget.', isCore: true },
-        { word: 'buffalo', phonetic: '/ˈbʌfəloʊ/', meanings: ['水牛', '野牛', '欺压'], example: 'The buffalo is native to America.', isCore: false },
-        { word: 'build', phonetic: '/bɪld/', meanings: ['建造', '建筑', '建立'], example: 'Build a house.', isCore: true },
-        { word: 'building', phonetic: '/ˈbɪldɪŋ/', meanings: ['建筑', '建筑物', '楼房'], example: 'An office building.', isCore: true },
-        { word: 'bulk', phonetic: '/bʌlk/', meanings: ['大块', '散装', '大部分'], example: 'The bulk of the work.', isCore: false },
-        { word: 'bullet', phonetic: '/ˈbʊlɪt/', meanings: ['子弹', '小圆点', '要害'], example: 'A bulletproof vest.', isCore: true },
-        { word: 'bunch', phonetic: '/bʌntʃ/', meanings: ['束', '串', '一群'], example: 'A bunch of flowers.', isCore: true },
-        { word: 'burden', phonetic: '/ˈbɜːrdn/', meanings: ['负担', '负重', '使负重'], example: 'A heavy burden.', isCore: true },
-        { word: 'bureau', phonetic: '/ˈbjʊroʊ/', meanings: ['局', '办事处', ' bureau'], example: 'The Federal Bureau of Investigation.', isCore: false },
-        { word: 'burn', phonetic: '/bɜːrn/', meanings: ['燃烧', '烧伤', '晒伤'], example: 'The house burned down.', isCore: true },
-        { word: 'bury', phonetic: '/ˈberi/', meanings: ['埋葬', '埋藏', '隐藏'], example: 'Bury the treasure.', isCore: true },
-        { word: 'bus', phonetic: '/bʌs/', meanings: ['公共汽车', '公交车'], example: 'Take the bus.', isCore: true },
-        { word: 'bush', phonetic: '/bʊʃ/', meanings: ['灌木', '灌木丛', '未开垦的'], example: 'A rose bush.', isCore: true },
-        { word: 'business', phonetic: '/ˈbɪznəs/', meanings: ['商业', '生意', '事务'], example: 'He is in business.', isCore: true },
-        { word: 'busy', phonetic: '/ˈbɪzi/', meanings: ['忙的', '繁忙的', '占用'], example: 'I am busy now.', isCore: true },
-        { word: 'but', phonetic: '/bʌt/', meanings: ['但是', '然而', '只有'], example: 'I want to go but I cannot.', isCore: true },
-        { word: 'butter', phonetic: '/ˈbʌtər/', meanings: ['黄油', '奶油', '涂黄油'], example: 'Spread butter on bread.', isCore: true },
-        { word: 'button', phonetic: '/ˈbʌtn/', meanings: ['按钮', '纽扣', '扣上'], example: 'Press the button.', isCore: true },
-        { word: 'buy', phonetic: '/baɪ/', meanings: ['买', '购买', '贿赂'], example: 'I want to buy a car.', isCore: true },
-        { word: 'buyer', phonetic: '/ˈbaɪər/', meanings: ['买方', '买家', '购买者'], example: 'The buyer paid a high price.', isCore: true },
-        { word: 'by', phonetic: '/baɪ/', meanings: ['通过', '被', '在...旁边'], example: 'By accident.', isCore: true }
-      ],
-      cet6: [
-        { word: 'acquire', phonetic: '/əˈkwaɪər/', meanings: ['获得', '学到'], example: 'We need to acquire new skills.', isCore: true },
-        { word: 'adapt', phonetic: '/əˈdæpt/', meanings: ['适应', '改编'], example: 'Animals adapt to their environment.', isCore: true },
-        { word: 'adequate', phonetic: '/ˈædɪkwət/', meanings: ['足够的', '适当的'], example: 'The food was adequate for everyone.', isCore: true },
-        { word: 'adjust', phonetic: '/əˈdʒʌst/', meanings: ['调整', '适应'], example: 'Please adjust the volume.', isCore: false },
-        { word: 'administration', phonetic: '/ədˌmɪnɪˈstreɪʃən/', meanings: ['管理', '行政'], example: 'The administration made a decision.', isCore: true },
-        { word: 'adult', phonetic: '/ˈædʌlt/', meanings: ['成年人'], example: 'An adult should be responsible.', isCore: false },
-        { word: 'advocate', phonetic: '/ˈædvəkeɪt/', meanings: ['提倡', '拥护'], example: 'We advocate peace.', isCore: true }
-      ],
-      kaoyan: [
-        { word: 'aggregate', phonetic: '/ˈæɡrɪɡət/', meanings: ['合计', '聚集'], example: 'The data was aggregated from multiple sources.', isCore: true },
-        { word: 'alleviate', phonetic: '/əˈliːvieɪt/', meanings: ['减轻', '缓和'], example: 'The medicine alleviated the pain.', isCore: true },
-        { word: 'allocate', phonetic: '/ˈæləkeɪt/', meanings: ['分配', '拨给'], example: 'Resources were allocated to the project.', isCore: true },
-        { word: 'ambiguous', phonetic: '/æmˈbɪɡjuəs/', meanings: ['模糊的', '歧义的'], example: 'The statement is ambiguous.', isCore: true }
-      ],
-      toefl: [
-        { word: 'ubiquitous', phonetic: '/juːˈbɪkwɪtəs/', meanings: ['无处不在的'], example: 'Smartphones have become ubiquitous.', isCore: true },
-        { word: 'ephemeral', phonetic: '/ɪˈfemərəl/', meanings: ['短暂的', '瞬息的'], example: 'Fame in the modern world is often ephemeral.', isCore: true },
-        { word: 'paradigm', phonetic: '/ˈpærədaɪm/', meanings: ['范式', '典范'], example: 'This is a new paradigm.', isCore: true }
-      ],
-      touya: [
-        { word: 'sustainable', phonetic: '/səˈsteɪnəbl/', meanings: ['可持续的'], example: 'We need sustainable development.', isCore: true },
-        { word: 'biodiversity', phonetic: '/ˌbaɪəʊdaɪˈvɜːsəti/', meanings: ['生物多样性'], example: 'Biodiversity is crucial for ecosystem health.', isCore: true },
-        { word: 'mitigate', phonetic: '/ˈmɪtɪɡeɪt/', meanings: ['减轻', '缓和'], example: 'We must mitigate the effects of climate change.', isCore: true }
-      ]
+      cet4: [],
+      cet6: [],
+      kaoyan: [],
+      touya: [],
+      toefl: []
     };
 
-        // Assessment questions with difficulty levels: easy(1), medium(2), hard(3)
-// Score calculation: easy_correct*10 + medium_correct*15 + hard_correct*20, normalized to 0-100
+    // Assessment questions with difficulty levels: easy(1), medium(2), hard(3)
     const ASSESSMENT_QUESTIONS = {
       vocab: {
         easy: [
@@ -3457,60 +3081,39 @@
 
     // ============== Init ==============
     async function init() {
-      // Load vocabulary data first
+      // Load vocabulary data from words.json
       try {
         const response = await fetch('words.json');
         if (response.ok) {
           const loadedWords = await response.json();
-          console.log('Loaded words from words.json:', { cet4: loadedWords.cet4?.length, cet6: loadedWords.cet6?.length, kaoyan: loadedWords.kaoyan?.length, touya: (loadedWords.toefl?.length || 0) + (loadedWords.ielts?.length || 0) });
-          // Merge loaded words with existing WORDS
-          // Merge TOEFL and IELTS into 托雅 (touya)
-          if (loadedWords.toefl || loadedWords.ielts) {
-            const touyaWords = [...(loadedWords.toefl || []), ...(loadedWords.ielts || [])];
-            const existingWords = new Set((WORDS.touya || []).map(w => w.word));
-            let addedCount = 0;
-            touyaWords.forEach(w => {
-              if (!existingWords.has(w.word)) {
-                if (!WORDS.touya) WORDS.touya = [];
-                WORDS.touya.push({
-                  word: w.word,
-                  phonetic: w.phonetic || '',
-                  meanings: w.meaning ? [w.meaning] : [],
-                  example: '',
-                  isCore: true
-                });
-                addedCount++;
-              }
-            });
-            console.log(`Merged touya: added ${addedCount} words, total now ${WORDS.touya?.length || 0}`);
-          }
-
-          // Merge other exams
-          ['cet4', 'cet6', 'kaoyan'].forEach(exam => {
-            if (loadedWords[exam] && WORDS[exam]) {
-              const existingWords = new Set(WORDS[exam].map(w => w.word));
-              let addedCount = 0;
-              loadedWords[exam].forEach(w => {
-                if (!existingWords.has(w.word)) {
-                  WORDS[exam].push({
-                    word: w.word,
-                    phonetic: w.phonetic || '',
-                    meanings: w.meaning ? [w.meaning] : [],
-                    example: '',
-                    isCore: true
-                  });
-                  addedCount++;
-                }
-              });
-              console.log(`Merged ${exam}: added ${addedCount} words, total now ${WORDS[exam].length}`);
-            }
+          console.log('Loaded words from words.json:', {
+            cet4: loadedWords.cet4?.length,
+            cet6: loadedWords.cet6?.length,
+            kaoyan: loadedWords.kaoyan?.length,
+            toefl: loadedWords.toefl?.length,
+            ielts: loadedWords.ielts?.length
           });
+
+          // Directly assign loaded words to WORDS
+          WORDS.cet4 = loadedWords.cet4 || [];
+          WORDS.cet6 = loadedWords.cet6 || [];
+          WORDS.kaoyan = loadedWords.kaoyan || [];
+          // Merge TOEFL and IELTS into 托雅 (touya)
+          WORDS.touya = [...(loadedWords.toefl || []), ...(loadedWords.ielts || [])].map(w => ({
+            word: w.word,
+            phonetic: w.phonetic || '',
+            meanings: w.meaning ? [w.meaning] : [],
+            example: '',
+            isCore: true
+          }));
+
           vocabularyLoaded = true;
         } else {
           console.log('Failed to fetch words.json:', response.status);
         }
       } catch (e) {
         console.log('Failed to load words.json:', e);
+        showToast('词库加载失败，请刷新重试');
       }
 
       // Initialize IndexedDB
@@ -3611,7 +3214,7 @@
             ${EXAMS.map(exam => `
               <div class="exam-option" data-exam="${exam.id}" onclick="selectOnboardingExam('${exam.id}')">
                 <div class="exam-option-name">${exam.shortName}</div>
-                <div class="exam-option-count">${exam.wordCount} 词</div>
+                <div class="exam-option-count">${getExamWordCount(exam.id)} 词</div>
               </div>
             `).join('')}
           </div>
@@ -3948,7 +3551,7 @@
         html += `
           <div class="exam-option ${exam.id === currentExam ? 'selected' : ''}" onclick="confirmSwitchExam('${exam.id}')">
             <div class="exam-option-name">${exam.shortName}</div>
-            <div class="exam-option-count">${exam.wordCount} 词</div>
+            <div class="exam-option-count">${getExamWordCount(exam.id)} 词</div>
           </div>
         `;
       });
@@ -4363,6 +3966,10 @@
     }
 
     function showVocabLearning() {
+      if (!vocabularyLoaded || (WORDS[currentExam] || WORDS.cet4).length === 0) {
+        showToast('词库加载中，请稍候...');
+        return;
+      }
       // 直接进入闪卡学习模式
       showFlashcardMode();
     }
@@ -4434,7 +4041,10 @@
     let isFlipped = false;
 
     function showFlashcardMode() {
+      console.log('showFlashcardMode called, currentExam:', currentExam);
+      console.log('WORDS:', Object.keys(WORDS).reduce((acc, k) => { acc[k] = WORDS[k]?.length || 0; return acc; }, {}));
       const words = WORDS[currentExam] || WORDS.cet4;
+      console.log('words to learn:', words.length);
       // 过滤掉已经掌握的单词（level >= 4），优先学习未掌握的和核心词汇
       const unmastered = words.filter(w => (state.wordMastery[w.word] || 0) < 4);
       const toLearn = unmastered.length > 0 ? unmastered : words;
@@ -5271,10 +4881,10 @@
     function updateHeader() {
       document.getElementById('header-points').textContent = state.learning.points;
       if (!state.pet.isHatched) {
-        document.getElementById('header-pet-emoji').textContent = '🥚';
+        document.getElementById('header-pet-icon').textContent = '🥚';
         document.getElementById('header-pet-level').textContent = '';
       } else {
-        document.getElementById('header-pet-emoji').textContent = '🐾';
+        document.getElementById('header-pet-icon').textContent = '🐾';
         document.getElementById('header-pet-level').textContent = `Lv.${state.pet.level}`;
       }
     }
